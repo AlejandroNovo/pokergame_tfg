@@ -8,7 +8,7 @@ class Jugador(object):
         for carta in self.mano:
             carta.dibujar_carta()   # Duda como que podemos hacer ese dibujar_carta
 
-
+#prueba2
 
 
 
