@@ -1,4 +1,4 @@
-from BARAJA import *
+from BARAJA import Baraja
 
 
 class Mesa(object):
