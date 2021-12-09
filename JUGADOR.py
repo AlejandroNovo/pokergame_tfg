@@ -9,6 +9,7 @@ class Jugador(object):
             carta.dibujar_carta()   # Duda como que podemos hacer ese dibujar_carta
 
 #prueba2
+#prueba3
 
 
 
