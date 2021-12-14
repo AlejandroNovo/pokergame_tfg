@@ -29,3 +29,6 @@ class Baraja(object):
     def repartir_carta(self):
         return self.mazo_stdr.pop(0)
 
+
+
+
