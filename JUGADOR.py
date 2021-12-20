@@ -46,8 +46,6 @@ class Jugador(object):
                 print(str(self.nombre) + " ha subido.")
             elif opciones == "N":
                 print(str(self.nombre) + " no ha ido.")
-            else:
-                pass
         else:
             opciones = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
                                                    "Indique una accion: ", ["I", "S", "N"])
@@ -57,11 +55,4 @@ class Jugador(object):
                 print(str(self.nombre) + " ha subido.")
             elif opciones == "N":
                 print(str(self.nombre) + " no ha ido.")
-            else:
-                pass
-
-
-
-
-
 

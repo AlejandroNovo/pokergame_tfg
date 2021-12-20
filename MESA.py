@@ -14,7 +14,7 @@ class Mesa(object):
         for carta in self.cartas_mesa:
             carta.dibujar_carta()
 
-    def pasa_al_bote(self, cantidad):
+    def sumar_al_bote(self, cantidad):
         self.bote += cantidad
 
 

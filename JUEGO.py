@@ -1,3 +1,4 @@
+from itertools import cycle
 import random
 from MESA import Mesa
 from JUGADOR import Jugador
@@ -7,7 +8,8 @@ from Utilidades import Utilidades
 class Juego:
     CARTAS_INICIALES = 2
     FASES = {0: "inicial", 1: "apuestas", 2: "flop"}
-    ROLES = {"boton": "Botón", "ciega_peque": "Ciega Pequeña", "ciega_grande": "Ciega Grande"}
+    ROLES = {"boton": "Botón", "ciega_peque": "Ciega Pequeña",
+             "ciega_grande": "Ciega Grande"}
     CIEGA_PEQUE = 1
     CIEGA_GRANDE = 2
 
@@ -24,7 +26,6 @@ class Juego:
         self.orquestar_fase()
 
     def inicio_partida(self):
-        self.mesa = Mesa()     # ¡¡segunda mesa aquí!!
         self.iniciar_jugadores()
         self.iniciar_roles()
 
@@ -50,15 +51,18 @@ class Juego:
         indice_boton = self.jugadores.index(jugador_boton)
         if len(self.jugadores) == 2:
             jugador_boton.asignar_rol(self.ROLES["ciega_peque"])
-            self.jugadores[(indice_boton + 1) % len(self.jugadores)].asignar_rol(self.ROLES["ciega_grande"])
+            self.jugadores[(indice_boton + 1) % len(self.jugadores)
+                           ].asignar_rol(self.ROLES["ciega_grande"])
         else:
-            self.jugadores[(indice_boton + 1) % len(self.jugadores)].asignar_rol(self.ROLES["ciega_peque"])
-            self.jugadores[(indice_boton + 2) % len(self.jugadores)].asignar_rol(self.ROLES["ciega_grande"])
+            self.jugadores[(indice_boton + 1) % len(self.jugadores)
+                           ].asignar_rol(self.ROLES["ciega_peque"])
+            self.jugadores[(indice_boton + 2) % len(self.jugadores)
+                           ].asignar_rol(self.ROLES["ciega_grande"])
 
     def orquestar_fase(self):
         # contador_fase = 0
         self.fase_inicial()
-        # self.fase_toma_decision1()
+        self.primera_toma_decision()
 
     def fase_inicial(self):
         self.contador_ronda += 1
@@ -84,7 +88,8 @@ class Juego:
 
                 jugador.roles.clear()
 
-            nuevo_boton = self.jugadores[(indice_boton + 1) % len(self.jugadores)]
+            nuevo_boton = self.jugadores[(
+                indice_boton + 1) % len(self.jugadores)]
             nuevo_boton.asignar_rol(self.ROLES["boton"])
             self.comprobar_actividad()
             self.asignar_ciegas(nuevo_boton)
@@ -97,28 +102,56 @@ class Juego:
             if jugador.comprueba_fichas():
                 if self.ROLES["boton"] in jugador.roles:
                     indice_boton = self.jugadores.index(jugador)
-                    self.jugadores[(indice_boton + 1) % len(self.jugadores)].asignar_rol(self.ROLES["boton"])
+                    self.jugadores[(indice_boton + 1) % len(self.jugadores)
+                                   ].asignar_rol(self.ROLES["boton"])
                 self.jugadores.remove(jugador)
 
     def pagan_ciegas(self):
         for jugador in self.jugadores:
             if self.ROLES["ciega_peque"] in jugador.roles:
                 jugador.apuesta(self.CIEGA_PEQUE)
-                self.mesa.pasa_al_bote(self.CIEGA_PEQUE)
-
-        for jugador in self.jugadores:
-            if self.ROLES["ciega_grande"] in jugador.roles:
+                self.mesa.sumar_al_bote(self.CIEGA_PEQUE)
+            elif self.ROLES["ciega_grande"] in jugador.roles:
                 jugador.apuesta(self.CIEGA_GRANDE)
-                self.mesa.pasa_al_bote(self.CIEGA_GRANDE)
+                self.mesa.sumar_al_bote(self.CIEGA_GRANDE)
 
-    def fase_toma_decision1(self):
-        for jugador in self.jugadores:
-            if self.ROLES["ciega_grande"] in jugador.roles:
-                indice_cg = self.jugadores.index(jugador)
-                self.jugadores[(indice_cg + 1) % len(self.jugadores)].acciones()
+    def primera_toma_decision(self):
+        table = cycle(self.jugadores)
+        primera_fase = True
+        apuesta_maxima_actual = self.CIEGA_GRANDE
 
-            else:
-                pass
+        self.mostrar_informacion()
+        for jugador in table:
+            if (self.ROLES["ciega_grande"] in jugador.roles) and primera_fase:
+                primera_fase = False
+                continue
+            if not primera_fase:
+                self.preguntar_accion(apuesta_maxima_actual, jugador)
+                
+
+    def preguntar_accion(self, apuesta_maxima_actual, jugador):
+        if jugador.apuesta_actual == apuesta_maxima_actual:
+            opciones = Utilidades.preguntar_opcion("Acciones a realizar: P=Pasar I=Igualar S=Subir N=No ir\n"
+                                                   "Indique una accion: ", ["P", "I", "S", "N"])
+        else:
+            opciones = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
+                                                   "Indique una accion: ", ["I", "S", "N"])
+        if opciones == "P":
+            print(str(jugador.nombre) + " ha pasado.")
+        elif opciones == "I":
+            print(str(jugador.nombre) + " ha igualado.")
+        elif opciones == "S":
+            print(str(jugador.nombre) + " ha subido.")
+        elif opciones == "N":
+            print(str(jugador.nombre) + " no ha ido.")
+
+        return apuesta_maxima_actual
+
+
+    def mostrar_informacion(self):
+        print("=============== BOTE ACTUAL ==============")
+        print(f"El bote actual es {self.mesa.bote}")
+        print("==========================================")
 
     def imprimir_roles(self):
         for jugador in self.jugadores:
@@ -129,7 +162,6 @@ class Juego:
         # y actualiza un valor cuando si lo sea
         pass
 
-
     ''' def ronda(self):
         print("cartas en la mesa")
         self.mesa.mostar_mesa()  # Muestra las cartas añadidas a la mesa
@@ -139,8 +171,3 @@ class Juego:
 
     def fin_de_juego(self):
         return False
-
-
-
-
-

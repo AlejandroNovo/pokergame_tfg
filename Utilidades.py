@@ -4,7 +4,7 @@ class Utilidades:
     def preguntar_opcion(texto, opciones):
         valor = ""
         while not valor in opciones:
-            valor = input(texto)
+            valor = input(texto).upper()
         return valor
 
     @staticmethod
