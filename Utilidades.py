@@ -2,9 +2,9 @@ class Utilidades:
 
     @staticmethod
     def preguntar_opcion(texto, opciones):
-        valor=""
+        valor = ""
         while not valor in opciones:
-            valor= input(texto)
+            valor = input(texto)
         return valor
 
     @staticmethod
