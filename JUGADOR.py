@@ -6,17 +6,20 @@ class Jugador(object):
     def __init__(self, nombre):
         self.nombre = nombre
         self.mano = []
-        self.roles = [] # [Dealer, Ciega_Peque, Ciega_Grande]
+        self.roles = []  # [Dealer, Ciega_Peque, Ciega_Grande]
         self.fichas = 20
         self.activo = True
-        self.apuesta_actual = 0
+        self.fichas_comprometidas_fase = 0
 
     def dibujar_mano(self):
         for carta in self.mano:
-            carta.dibujar_carta()   # Duda como que podemos hacer ese dibujar_carta
+            carta.dibujar_carta()
         
     def asignar_rol(self, rol):
         self.roles.append(rol)
+
+    def aniadir_carta(self, carta):
+        self.mano.append(carta)
 
     def comprueba_fichas(self):
         if self.fichas == 0:
@@ -30,29 +33,29 @@ class Jugador(object):
 
     def apuesta(self, fichas_descontar):
         self.fichas -= fichas_descontar
+        self.fichas_comprometidas_fase += fichas_descontar
 
-    def acciones(self, apuesta_maxima_actual):
-        print("Estas son sus dos cartas " + str(self.nombre) + ":")
-        self.dibujar_mano()
+    def pasar(self):
+        pass
 
-        if self.apuesta_actual == apuesta_maxima_actual:
-            opciones = Utilidades.preguntar_opcion("Acciones a realizar: P=Pasar I=Igualar S=Subir N=No ir\n"
-                                                   "Indique una accion: ", ["P", "I", "S", "N"])
-            if opciones == "P":
-                print(str(self.nombre) + " ha pasado.")
-            elif opciones == "I":
-                print(str(self.nombre) + " ha igualado.")
-            elif opciones == "S":
-                print(str(self.nombre) + " ha subido.")
-            elif opciones == "N":
-                print(str(self.nombre) + " no ha ido.")
+    def igualar(self, apuesta_maxima_actual):
+        cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
+        if cantidad_a_igualar <= self.fichas:
+            self.apuesta(cantidad_a_igualar)
+            return cantidad_a_igualar
+
         else:
-            opciones = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
-                                                   "Indique una accion: ", ["I", "S", "N"])
-            if opciones == "I":
-                print(str(self.nombre) + " ha igualado.")
-            elif opciones == "S":
-                print(str(self.nombre) + " ha subido.")
-            elif opciones == "N":
-                print(str(self.nombre) + " no ha ido.")
+            # cosas de all-in (para mas tarde)
+            pass
+
+    def subir(self, apuesta_maxima_actual):
+
+        cantidad_a_subir = Utilidades.preguntar_numero("Introduzca la cantidad que desea Subir: ",
+                                                       apuesta_maxima_actual, self.fichas)
+        self.apuesta(cantidad_a_subir)
+        return cantidad_a_subir
+
+    def no_ir(self):
+        return True
+
 

@@ -8,7 +8,8 @@ class Carta(object):
         return "[{}-{}]".format(self.valor, self.palo)'''
 
     def dibujar_carta(self):
-        print("[{}-{}]".format(self.valor, self.palo))
+        print(f"[{self.valor}-{self.palo}]")
+
 
 
 

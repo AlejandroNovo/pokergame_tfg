@@ -7,6 +7,7 @@ from Utilidades import Utilidades
 
 class Juego:
     CARTAS_INICIALES = 2
+    CARTAS_FLOP = 3
     FASES = {0: "inicial", 1: "apuestas", 2: "flop"}
     ROLES = {"boton": "Botón", "ciega_peque": "Ciega Pequeña",
              "ciega_grande": "Ciega Grande"}
@@ -14,16 +15,16 @@ class Juego:
     CIEGA_GRANDE = 2
 
     def __init__(self):
-        self.mesa = Mesa()    # ¡¡1 mesa aquí!!
-        self.jugadores = []
+        self.mesa = Mesa()
+        self.jugadores_partida = []
+        self.jugadores_ronda = []
         self.apuesta_maxima = 0
         self.contador_ronda = 0
-        # self.fase = self.FASES[0]
 
     def orquestar(self):
         self.inicio_partida()
         self.orquestar_fase()
-        self.orquestar_fase()
+        # self.orquestar_fase()
 
     def inicio_partida(self):
         self.iniciar_jugadores()
@@ -34,140 +35,177 @@ class Juego:
         for i in range(num_jugadores):
             nombre = input("Nombre del jugador " + str(i + 1) + ": ")
             jugador = Jugador(nombre)
-            self.jugadores.append(jugador)
+            self.jugadores_partida.append(jugador)
 
     def iniciar_roles(self):
         print("Roles iniciales: ")
-        jugador_boton = self.asignarBotonAleatorio()
+        jugador_boton = self.asignar_boton_aleatorio()
         self.asignar_ciegas(jugador_boton)
         self.imprimir_roles()
 
-    def asignarBotonAleatorio(self):
-        jugador = random.choice(self.jugadores)
+    def asignar_boton_aleatorio(self):
+        jugador = random.choice(self.jugadores_partida)
         jugador.asignar_rol(self.ROLES["boton"])
         return jugador
 
     def asignar_ciegas(self, jugador_boton):
-        indice_boton = self.jugadores.index(jugador_boton)
-        if len(self.jugadores) == 2:
+        indice_boton = self.jugadores_partida.index(jugador_boton)
+        if len(self.jugadores_partida) == 2:
             jugador_boton.asignar_rol(self.ROLES["ciega_peque"])
-            self.jugadores[(indice_boton + 1) % len(self.jugadores)
-                           ].asignar_rol(self.ROLES["ciega_grande"])
+            self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)
+                                   ].asignar_rol(self.ROLES["ciega_grande"])
         else:
-            self.jugadores[(indice_boton + 1) % len(self.jugadores)
-                           ].asignar_rol(self.ROLES["ciega_peque"])
-            self.jugadores[(indice_boton + 2) % len(self.jugadores)
-                           ].asignar_rol(self.ROLES["ciega_grande"])
+            self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)
+                                   ].asignar_rol(self.ROLES["ciega_peque"])
+            self.jugadores_partida[(indice_boton + 2) % len(self.jugadores_partida)
+                                   ].asignar_rol(self.ROLES["ciega_grande"])
 
     def orquestar_fase(self):
         # contador_fase = 0
         self.fase_inicial()
         self.primera_toma_decision()
+        self.flop()
 
     def fase_inicial(self):
         self.contador_ronda += 1
         self.mesa.mazo_mesa.barajar()
-        self.repartir_cartas_iniciales()
         self.actualizar_roles()
         self.pagan_ciegas()
+        self.repartir_cartas_iniciales()
 
     def repartir_cartas_iniciales(self):
         for _ in range(self.CARTAS_INICIALES):
-            for jugador in self.jugadores:
+            for jugador in self.jugadores_partida:
                 carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
-                jugador.mano.append(carta_propia)
+                jugador.aniadir_carta(carta_propia)
 
     def actualizar_roles(self):
+        # self.jugadores[0].fichas = 0
+        # self.jugadores[1].fichas = 0
+
         if self.contador_ronda != 1:
             print("Roles actualizados:")
             indice_boton = 0
-
-            for jugador in self.jugadores:
+            for jugador in self.jugadores_partida:
                 if self.ROLES["boton"] in jugador.roles:
-                    indice_boton = self.jugadores.index(jugador)
-
+                    indice_boton = self.jugadores_partida.index(jugador)
                 jugador.roles.clear()
 
-            nuevo_boton = self.jugadores[(
-                indice_boton + 1) % len(self.jugadores)]
+            while self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)].comprueba_fichas():
+                indice_boton += 1
+
+            nuevo_boton = self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)]
             nuevo_boton.asignar_rol(self.ROLES["boton"])
             self.comprobar_actividad()
             self.asignar_ciegas(nuevo_boton)
             self.imprimir_roles()
 
     def comprobar_actividad(self):
-        self.jugadores[0].fichas = 0
-        self.jugadores[1].fichas = 0
-        for jugador in self.jugadores:
+        flag = False
+        for jugador in self.jugadores_partida:
             if jugador.comprueba_fichas():
-                if self.ROLES["boton"] in jugador.roles:
-                    indice_boton = self.jugadores.index(jugador)
-                    self.jugadores[(indice_boton + 1) % len(self.jugadores)
-                                   ].asignar_rol(self.ROLES["boton"])
-                self.jugadores.remove(jugador)
+                self.jugadores_partida.remove(jugador)
+                flag = True
+                break
+        if flag:
+            self.comprobar_actividad()
 
     def pagan_ciegas(self):
-        for jugador in self.jugadores:
+        for jugador in self.jugadores_partida:
             if self.ROLES["ciega_peque"] in jugador.roles:
                 jugador.apuesta(self.CIEGA_PEQUE)
-                self.mesa.sumar_al_bote(self.CIEGA_PEQUE)
+                self.mesa.sumar_al_bote_fase(self.CIEGA_PEQUE)
             elif self.ROLES["ciega_grande"] in jugador.roles:
                 jugador.apuesta(self.CIEGA_GRANDE)
-                self.mesa.sumar_al_bote(self.CIEGA_GRANDE)
+                self.mesa.sumar_al_bote_fase(self.CIEGA_GRANDE)
 
     def primera_toma_decision(self):
-        table = cycle(self.jugadores)
-        primera_fase = True
-        apuesta_maxima_actual = self.CIEGA_GRANDE
+        self.jugadores_ronda = self.jugadores_partida
+        apuesta_maxima_actual = self.comprueba_apuesta_maxima()
+        # self.mostrar_info()
+        while not self.ronda_resuelta():
+            siguiente_jugador = self.gestion_turnos()
+            self.preguntar_accion(apuesta_maxima_actual, siguiente_jugador)
 
-        self.mostrar_informacion()
-        for jugador in table:
-            if (self.ROLES["ciega_grande"] in jugador.roles) and primera_fase:
-                primera_fase = False
-                continue
-            if not primera_fase:
-                self.preguntar_accion(apuesta_maxima_actual, jugador)
-                
+    def gestion_turnos(self):
+        contador_llamada = 0
+        if contador_llamada == 0:
+            for jugador in self.jugadores_ronda:
+                if self.ROLES["ciega_grande"] in jugador.roles:
+                    indice_c = self.jugadores_ronda.index(jugador)
+                    siguiente_jugador = self.jugadores_ronda[(indice_c + 1) % len(self.jugadores_ronda)]
+                    contador_llamada = 1
+                    return siguiente_jugador
+        else:
+            for i in self.jugadores_ronda:
+                siguiente_jugador = self.jugadores_ronda[(i + 1) % len(self.jugadores_ronda)]
+                return siguiente_jugador
+
+
+    def ronda_resuelta(self):
+        cont = 0
+        for jugador in self.jugadores_ronda:
+            if jugador.fichas_comprometidas_fase == self.comprueba_apuesta_maxima():
+                cont += 1
+        if cont == len(self.jugadores_ronda):
+            return True
 
     def preguntar_accion(self, apuesta_maxima_actual, jugador):
-        if jugador.apuesta_actual == apuesta_maxima_actual:
-            opciones = Utilidades.preguntar_opcion("Acciones a realizar: P=Pasar I=Igualar S=Subir N=No ir\n"
-                                                   "Indique una accion: ", ["P", "I", "S", "N"])
+        print("====================================")
+        print(f"Turno del jugador: {jugador.nombre}")
+        print("Estas son sus cartas: ")
+        jugador.dibujar_mano()
+        if jugador.fichas_comprometidas_fase == apuesta_maxima_actual:
+            respuesta = Utilidades.preguntar_opcion("Acciones a realizar: P=Pasar I=Igualar S=Subir N=No ir\n"
+                                                    "Indique una accion: ", ["P", "I", "S", "N"])
         else:
-            opciones = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
-                                                   "Indique una accion: ", ["I", "S", "N"])
-        if opciones == "P":
+
+            respuesta = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
+                                                    "Indique una accion: ", ["I", "S", "N"])
+        if respuesta == "P":
+            jugador.pasar()
             print(str(jugador.nombre) + " ha pasado.")
-        elif opciones == "I":
+
+        elif respuesta == "I":
+            apuesta_realizada = jugador.igualar(apuesta_maxima_actual)
+            self.mesa.sumar_al_bote_fase(apuesta_realizada)
             print(str(jugador.nombre) + " ha igualado.")
-        elif opciones == "S":
+
+        elif respuesta == "S":
+            jugador.subir(apuesta_maxima_actual)
             print(str(jugador.nombre) + " ha subido.")
-        elif opciones == "N":
+
+        elif respuesta == "N":
+            if jugador.no_ir():
+                self.jugadores_ronda.remove(jugador)
             print(str(jugador.nombre) + " no ha ido.")
 
-        return apuesta_maxima_actual
 
+        # return apuesta_maxima_actual
 
-    def mostrar_informacion(self):
+    def mostrar_info(self):
         print("=============== BOTE ACTUAL ==============")
         print(f"El bote actual es {self.mesa.bote}")
         print("==========================================")
 
     def imprimir_roles(self):
-        for jugador in self.jugadores:
+        for jugador in self.jugadores_partida:
             print(jugador.nombre, jugador.roles)
 
-    def comprueba_apuesta(self):
-        # Comprueba si la apuesta realizada es la mayor de la toma de desción
-        # y actualiza un valor cuando si lo sea
-        pass
+    def comprueba_apuesta_maxima(self):    # Apaño de obtener cual es el valor máximo actual de apuesta de toma de
+        lista_apuestas_jugadores = []   # de decision de todos los jugadores
+        for jugador in self.jugadores_partida:
+            lista_apuestas_jugadores.append(jugador.fichas_comprometidas_fase)
+        return max(lista_apuestas_jugadores)
 
-    ''' def ronda(self):
-        print("cartas en la mesa")
-        self.mesa.mostar_mesa()  # Muestra las cartas añadidas a la mesa
-        for jugador in self.jugadores:
-            self.jugar(jugador)
-    '''
+    def flop(self):
+        for _ in range(self.CARTAS_FLOP):
+            cartas_flop = (self.mesa.mazo_mesa.mazo_stdr.pop())
+            self.mesa.sacar_carta_mesa(cartas_flop)
+
+    def turn_o_river(self):
+        carta = (self.mesa.mazo_mesa.mazo_stdr.pop())
+        self.mesa.sacar_carta_mesa(carta)
 
     def fin_de_juego(self):
         return False
