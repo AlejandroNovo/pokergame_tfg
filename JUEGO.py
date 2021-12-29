@@ -11,19 +11,20 @@ class Juego:
     FASES = {0: "inicial", 1: "apuestas", 2: "flop"}
     ROLES = {"boton": "Botón", "ciega_peque": "Ciega Pequeña", "ciega_grande": "Ciega Grande"}
     CIEGA_PEQUE = 1
-    CIEGA_GRANDE = 2
+    CIEGA_GRANDE = CIEGA_PEQUE * 2
 
     def __init__(self):
         self.mesa = Mesa()
         self.jugadores_partida = []
-        self.jugadores_ronda = []
         self.apuesta_maxima = 0
         self.contador_ronda = 0
+        self.fin_juego = False
 
     def orquestar(self):
         self.inicio_partida()
-        self.orquestar_fase()
-        # self.orquestar_fase()
+        while not self.fin_juego:
+            self.orquestar_fases()
+            self.fin_juego = self.comprobar_fin_juego()
 
     def inicio_partida(self):
         self.iniciar_jugadores()
@@ -57,50 +58,56 @@ class Juego:
             self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_peque"])
             self.jugadores_partida[(indice_boton + 2) % len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_grande"])
 
-    def orquestar_fase(self):
-        # contador_fase = 0
-        self.fase_inicial()
-        self.primera_toma_decision2()
+    def orquestar_fases(self):
+        self.inicial()
+        self.decision_primera()
+        self.gestionar_fichas()
         self.flop()
+        self.decision_estandar()
+        self.gestionar_fichas()
+        self.turn()
+        self.decision_estandar()
+        self.gestionar_fichas()
+        self.river()
+        self.decision_estandar()
+        self.gestionar_fichas()
+        # self.showdown()
 
-    def fase_inicial(self):
+    def inicial(self):
         self.contador_ronda += 1
         self.mesa.mazo_mesa.barajar_fisher_yates()
-        self.actualizar_roles()
+        if self.contador_ronda != 1:
+            self.actualizar_roles()
+
         self.pagan_ciegas()
         self.repartir_cartas_iniciales()
 
     def actualizar_roles(self):
-
-        # self.jugadores[0].fichas = 0
-        # self.jugadores[1].fichas = 0
-
-        if self.contador_ronda != 1:
-            print("Roles actualizados:")
-            indice_boton = 0
-            for jugador in self.jugadores_partida:
-                if jugador.es_boton():
-                    indice_boton = self.jugadores_partida.index(jugador)
-                jugador.roles.clear()
-
-            while self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)].no_tiene_fichas():
-                indice_boton += 1
-
-            nuevo_boton = self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)]
-            nuevo_boton.asignar_rol(self.ROLES["boton"])
-            self.comprobar_actividad()
-            self.asignar_ciegas(nuevo_boton)
-            self.imprimir_roles()
-
-    def comprobar_actividad(self):
-        iterador = False
+        print("Roles actualizados:")
+        indice_boton = 0
+        # self.jugadores_partida[0].fichas = 0
+        # self.jugadores_partida[1].fichas = 0
         for jugador in self.jugadores_partida:
-            if jugador.no_tiene_fichas():
-                self.jugadores_partida.remove(jugador)
-                iterador = True
-                break
-        if iterador:
-            self.comprobar_actividad()
+            if jugador.es_boton():
+                indice_boton = self.jugadores_partida.index(jugador)
+            jugador.roles.clear()
+
+        while self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)].no_tiene_fichas():
+            indice_boton += 1
+
+        nuevo_boton = self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)]
+        nuevo_boton.asignar_rol(self.ROLES["boton"])
+        self.comprobar_actividad()
+        self.asignar_ciegas(nuevo_boton)
+        self.imprimir_roles()
+    
+    def comprobar_actividad(self):
+        i = 0
+        while i < len(self.jugadores_partida):
+            if self.jugadores_partida[i].no_tiene_fichas():
+                self.jugadores_partida.remove(self.jugadores_partida[i])
+            else:
+                i += 1
 
     def pagan_ciegas(self):
         for jugador in self.jugadores_partida:
@@ -117,66 +124,47 @@ class Juego:
                 carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
                 jugador.aniadir_carta(carta_propia)
 
-    def primera_toma_decision(self):
-        # self.jugadores_ronda = self.jugadores_partida
-        apuesta_maxima_actual = self.comprueba_apuesta_maxima()
-        # self.mostrar_info()
-        while not self.ronda_resuelta():
-            for jugador in self.jugadores_partida:
-                if jugador.es_ciega_grande():
-                    turno_jugador = self.gestion_turno(jugador)
-                    self.preguntar_accion(apuesta_maxima_actual, turno_jugador)
-
-    def primera_toma_decision2(self):
+    def decision_primera(self):
         table = cycle(self.jugadores_partida)
-        primera_fase = True
-        apuesta_maxima_actual = self.comprueba_apuesta_maxima()
-        # self.mostrar_informacion()
-        self.gestion_turno2()
+        ciega_encontrada = False
+        for jugador in table:
+            if jugador.activo and ciega_encontrada:
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                print(f"Apuesta a igualar {self.comprueba_apuesta_maxima()}")
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                self.preguntar_accion(self.comprueba_apuesta_maxima(), jugador)
 
-    def gestion_turno2(self):
-        table = cycle(self.jugadores_partida)
-        apuesta_maxima_actual = self.comprueba_apuesta_maxima()
-        while self.ronda_resuelta():
-            for jugador in table:
-                if jugador.es_ciega_grande():
-                    continue
-                elif not jugador.activo:
-                    continue
-                else:
-                    self.preguntar_accion(apuesta_maxima_actual, jugador)
+                if self.ronda_resuelta():
+                    break
+            if jugador.es_ciega_grande():
+                ciega_encontrada = True  
 
         print("ronda resuelta")
 
-    def gestion_turno(self, jugador):
-        indice_c = self.jugadores_partida.index(jugador)
-        while not self.jugadores_partida[(indice_c + 1) % len(self.jugadores_partida)].activo:
-            indice_c += 1
-        siguiente_jugador = self.jugadores_partida[(indice_c + 1) % len(self.jugadores_partida)]
-        return siguiente_jugador
+    def decision_estandar(self):
+        table = cycle(self.jugadores_partida)
+        ciega_encontrada = False
+        for jugador in table:
+            if jugador.es_ciega_peque():
+                ciega_encontrada = True  
+            if jugador.activo and ciega_encontrada:
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                print(f"Apuesta a igualar {self.comprueba_apuesta_maxima()}")
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                self.preguntar_accion(self.comprueba_apuesta_maxima(), jugador)
 
-    ''' def gestion_turnos(self):
-        contador_llamada = 0
-        if contador_llamada == 0:
-            for jugador in self.jugadores_ronda:
-                if jugador.es_ciega_grande():
-                    indice_c = self.jugadores_ronda.index(jugador)
-                    siguiente_jugador = self.jugadores_ronda[(indice_c + 1) % len(self.jugadores_ronda)]
-                    contador_llamada = 1
-                    return siguiente_jugador
-        else:
-            for i in self.jugadores_ronda:
-                siguiente_jugador = self.jugadores_ronda[(i + 1) % len(self.jugadores_ronda)]
-                return siguiente_jugador '''
+                if self.ronda_resuelta():
+                    break
+
+        print("ronda resuelta")
 
 
     def ronda_resuelta(self):
-        cont = 0
-        for jugador in self.jugadores_ronda:
-            if jugador.fichas_comprometidas_fase == self.comprueba_apuesta_maxima():
-                cont += 1
-        if cont == len(self.jugadores_ronda):
-            return True
+        for jugador in self.jugadores_partida:
+            if jugador.activo:
+                if not jugador.taGucci(self.comprueba_apuesta_maxima()):
+                    return False
+        return True
 
     def preguntar_accion(self, apuesta_maxima_actual, jugador):
         print("====================================")
@@ -187,7 +175,6 @@ class Juego:
             respuesta = Utilidades.preguntar_opcion("Acciones a realizar: P=Pasar I=Igualar S=Subir N=No ir\n"
                                                     "Indique una accion: ", ["P", "I", "S", "N"])
         else:
-
             respuesta = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
                                                     "Indique una accion: ", ["I", "S", "N"])
         if respuesta == "P":
@@ -226,9 +213,18 @@ class Juego:
             cartas_flop = (self.mesa.mazo_mesa.mazo_stdr.pop())
             self.mesa.sacar_carta_mesa(cartas_flop)
 
-    def turn_o_river(self):
+    def turn(self):
         carta = (self.mesa.mazo_mesa.mazo_stdr.pop())
         self.mesa.sacar_carta_mesa(carta)
 
-    def fin_de_juego(self):
-        return False
+    def river(self):
+        carta = (self.mesa.mazo_mesa.mazo_stdr.pop())
+        self.mesa.sacar_carta_mesa(carta)
+
+    def gestionar_fichas(self):
+        # sumarAlBote
+        # resetFichasJugadores
+        pass
+
+    def comprobar_fin_juego(self):
+        return True

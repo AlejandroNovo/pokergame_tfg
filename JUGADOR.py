@@ -65,6 +65,6 @@ class Jugador(object):
     def no_ir(self):
         self.activo = False
 
-
-
-
+    def taGucci(self, apuesta_maxima_actual):
+        if self.fichas_comprometidas_fase == apuesta_maxima_actual:
+            return True
