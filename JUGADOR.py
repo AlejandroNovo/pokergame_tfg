@@ -21,7 +21,7 @@ class Jugador(object):
     def aniadir_carta(self, carta):
         self.mano.append(carta)
 
-    def comprueba_fichas(self):
+    def no_tiene_fichas(self):
         if self.fichas == 0:
             return True
         return False
@@ -31,12 +31,19 @@ class Jugador(object):
             return True
         return False
 
+    def es_ciega_peque(self):
+        if "Ciega Pequeña" in self.roles:
+            return True
+        return False
+
+    def es_ciega_grande(self):
+        if "Ciega Grande" in self.roles:
+            return True
+        return False
+
     def apuesta(self, fichas_descontar):
         self.fichas -= fichas_descontar
         self.fichas_comprometidas_fase += fichas_descontar
-
-    def pasar(self):
-        pass
 
     def igualar(self, apuesta_maxima_actual):
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
@@ -56,6 +63,8 @@ class Jugador(object):
         return cantidad_a_subir
 
     def no_ir(self):
-        return True
+        self.activo = False
+
+
 
 

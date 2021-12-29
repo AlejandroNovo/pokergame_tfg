@@ -1,5 +1,8 @@
-import random
+
 from CARTA import Carta
+from copy import deepcopy
+import random
+
 
 pica = "\u2660"
 corazon = "\u2665"
@@ -21,13 +24,33 @@ class Baraja(object):
 
     def mostrar_baraja(self):
         for carta in self.mazo_stdr:
-            print(carta)
+            carta.dibujar_carta()
 
     def barajar(self):
         random.shuffle(self.mazo_stdr)
 
     def repartir_carta(self):
         return self.mazo_stdr.pop(0)
+
+    def barajar_fisher_yates(self):
+        last_index = len(self.mazo_stdr) - 1
+        while last_index > 0:
+            rand_index = random.randint(0, last_index)
+            temp = self.mazo_stdr[last_index]
+            self.mazo_stdr[last_index] = self.mazo_stdr[rand_index]
+            self.mazo_stdr[rand_index] = temp
+            last_index -= 1
+
+
+    ''' def shuffle(self):
+        tmplist = deepcopy(self)
+        m = len(tmplist)
+        while (m):
+            m -= 1
+            i = randint(0, m)
+            tmplist[m], tmplist[i] = tmplist[i], tmplist[m]
+        return tmplist'''
+
 
 
 
