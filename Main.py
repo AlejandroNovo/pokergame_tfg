@@ -1,7 +1,8 @@
 from JUEGO import Juego
 
 
-print("Partida Texas Hold'em")
+print("Partida Texas Hold'em.")
 juego = Juego()
 juego.orquestar()
-print("Gracias por jugar. Ha estao' gucci")
+print("Gracias por jugar.")
+

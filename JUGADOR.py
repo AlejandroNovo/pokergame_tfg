@@ -65,6 +65,17 @@ class Jugador(object):
     def no_ir(self):
         self.activo = False
 
-    def taGucci(self, apuesta_maxima_actual):
+    def info_igualar(self, apuesta_maxima_actual):
+        cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
+        print(f"La cantidad a igualar es: {cantidad_a_igualar}")
+
+    def esta_fichas_igualadas(self, apuesta_maxima_actual):
         if self.fichas_comprometidas_fase == apuesta_maxima_actual:
             return True
+
+    def info_jugador(self):
+        print("Estas son sus cartas: ")
+        self.dibujar_mano()
+        print(f"Fichas disponible: {self.fichas}")
+        print(f"Cantidad aportada: {self.fichas_comprometidas_fase}")
+
