@@ -12,7 +12,6 @@ class Juego:
     ROLES = {"boton": "Botón", "ciega_peque": "Ciega Pequeña", "ciega_grande": "Ciega Grande"}
     CIEGA_PEQUE = 1
     CIEGA_GRANDE = CIEGA_PEQUE * 2
-    contador_acciones = 0
 
     def __init__(self):
         self.mesa = Mesa()
@@ -124,32 +123,14 @@ class Juego:
                 carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
                 jugador.aniadir_carta(carta_propia)
 
-    # def decision_primera(self):
-    #     table = cycle(self.jugadores_partida)
-    #     ciega_encontrada = False
-    #     for jugador in table:
-    #         if jugador.activo and ciega_encontrada:
-    #             self.preguntar_accion(self.comprueba_apuesta_maxima(), jugador)
-    #             if self.ronda_resuelta():
-    #                 break
-    #         if jugador.es_ciega_grande():
-    #             ciega_encontrada = True
-    #
-    #     print("ronda resuelta")
-
     def decision_primera(self):
         table = cycle(self.jugadores_partida)
         ciega_encontrada = False
-        flag = False
         for jugador in table:
             if jugador.activo and ciega_encontrada:
                 self.preguntar_accion(self.comprueba_apuesta_maxima(), jugador)
-                if self.ronda_resuelta() and (self.comprueba_apuesta_maxima() > self.CIEGA_GRANDE):
-                    break
-                if self.ronda_resuelta() and not flag:
-                    flag = True
-                    continue
-                if self.ronda_resuelta() and flag:
+
+                if self.ronda_resuelta():
                     break
             if jugador.es_ciega_grande():
                 ciega_encontrada = True
@@ -164,19 +145,18 @@ class Juego:
                 ciega_encontrada = True  
             if jugador.activo and ciega_encontrada:
                 self.preguntar_accion(self.comprueba_apuesta_maxima(), jugador)
-                if self.ronda_resuelta() and self.contador_acciones >= self.numero_jugadores_activos():
+                if self.ronda_resuelta():
                     break
         print("ronda resuelta")
 
     def ronda_resuelta(self):
         for jugador in self.jugadores_partida:
             if jugador.activo:
-                if not jugador.esta_fichas_igualadas(self.comprueba_apuesta_maxima()):
+                if not jugador.ha_actuado or not jugador.esta_fichas_igualadas(self.comprueba_apuesta_maxima()):
                     return False
         return True
 
     def preguntar_accion(self, apuesta_maxima_actual, jugador):
-        self.contador_acciones += 1
         print("====================================")
         self.mostrar_info()
         print(f"Turno del jugador: {jugador.nombre}")
@@ -189,6 +169,7 @@ class Juego:
             respuesta = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
                                                     "Indique una accion: ", ["I", "S", "N"])
         if respuesta == "P":
+            jugador.pasar()
             print(str(jugador.nombre) + " ha pasado.")
 
         elif respuesta == "I":
@@ -245,18 +226,11 @@ class Juego:
         print("ººººººººººººººººººººººººº")
 
     def gestionar_fichas(self):
-        self.contador_acciones = 0
         self.mesa.sumar_al_bote(self.mesa.bote_fase)
         self.mesa.bote_fase = 0
         for jugador in self.jugadores_partida:
             jugador.fichas_comprometidas_fase = 0
-
-    def numero_jugadores_activos(self):
-        contador = 0
-        for jugador in self.jugadores_partida:
-            if jugador.activo:
-                contador += 1
-        return contador
+            jugador.ha_actuado = False
 
     def comprobar_fin_juego(self):
         return True

@@ -10,6 +10,7 @@ class Jugador(object):
         self.fichas = 20
         self.activo = True
         self.fichas_comprometidas_fase = 0
+        self.ha_actuado = False
 
     def dibujar_mano(self):
         for carta in self.mano:
@@ -45,25 +46,32 @@ class Jugador(object):
         self.fichas -= fichas_descontar
         self.fichas_comprometidas_fase += fichas_descontar
 
+    def pasar(self):
+        self.ha_actuado = True
+
     def igualar(self, apuesta_maxima_actual):
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
         if cantidad_a_igualar <= self.fichas:
             self.apuesta(cantidad_a_igualar)
-            return cantidad_a_igualar
 
         else:
             # cosas de all-in (para mas tarde)
             pass
+        
+        self.ha_actuado = True
+        return cantidad_a_igualar
 
     def subir(self, apuesta_maxima_actual):
 
         cantidad_a_subir = Utilidades.preguntar_numero("Introduzca la cantidad que desea Subir: ",
                                                        apuesta_maxima_actual, self.fichas)
         self.apuesta(cantidad_a_subir)
+        self.ha_actuado = True
         return cantidad_a_subir
 
     def no_ir(self):
         self.activo = False
+        self.ha_actuado = True
 
     def info_igualar(self, apuesta_maxima_actual):
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
