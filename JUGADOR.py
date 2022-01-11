@@ -9,8 +9,10 @@ class Jugador(object):
         self.roles = []  # [Dealer, Ciega_Peque, Ciega_Grande]
         self.fichas = 20
         self.activo = True
-        self.fichas_comprometidas_fase = 0
         self.ha_actuado = False
+        self.allin = False
+        self.fichas_comprometidas_fase = 0
+
 
     def dibujar_mano(self):
         for carta in self.mano:
@@ -43,28 +45,27 @@ class Jugador(object):
         return False
 
     def apuesta(self, fichas_descontar):
-        self.fichas -= fichas_descontar
-        self.fichas_comprometidas_fase += fichas_descontar
+        if self.fichas - fichas_descontar == 0:
+            self.fichas -= fichas_descontar
+            self.fichas_comprometidas_fase += fichas_descontar
+            self.allin = True
+        else:
+            self.fichas -= fichas_descontar
+            self.fichas_comprometidas_fase += fichas_descontar
 
     def pasar(self):
         self.ha_actuado = True
 
     def igualar(self, apuesta_maxima_actual):
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
-        if cantidad_a_igualar <= self.fichas:
-            self.apuesta(cantidad_a_igualar)
-
-        else:
-            # cosas de all-in (para mas tarde)
-            pass
-        
+        self.apuesta(cantidad_a_igualar)
         self.ha_actuado = True
         return cantidad_a_igualar
 
     def subir(self, apuesta_maxima_actual):
 
         cantidad_a_subir = Utilidades.preguntar_numero("Introduzca la cantidad que desea Subir: ",
-                                                       apuesta_maxima_actual, self.fichas)
+                                                       apuesta_maxima_actual + 1, self.fichas)
         self.apuesta(cantidad_a_subir)
         self.ha_actuado = True
         return cantidad_a_subir
@@ -75,9 +76,9 @@ class Jugador(object):
 
     def info_igualar(self, apuesta_maxima_actual):
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
-        print(f"La cantidad a igualar es: {cantidad_a_igualar}")
+        print(f"La cantidad a igualar sería de: {cantidad_a_igualar}")
 
-    def esta_fichas_igualadas(self, apuesta_maxima_actual):
+    def fichas_igualadas(self, apuesta_maxima_actual):
         if self.fichas_comprometidas_fase == apuesta_maxima_actual:
             return True
 
@@ -86,4 +87,7 @@ class Jugador(object):
         self.dibujar_mano()
         print(f"Fichas disponible: {self.fichas}")
         print(f"Cantidad aportada: {self.fichas_comprometidas_fase}")
+
+    def modo_allin(self):
+        print("EL jugador esta en modo all-in")
 

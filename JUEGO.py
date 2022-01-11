@@ -5,19 +5,24 @@ from JUGADOR import Jugador
 from Utilidades import Utilidades
 
 
-class Juego:
+class Juego(object):
+    MINIMO_JUGADORES = 2
+    MAXIMO_JUGADORES = 10
     CARTAS_INICIALES = 2
     CARTAS_FLOP = 3
     FASES = {0: "inicial", 1: "apuestas", 2: "flop"}
     ROLES = {"boton": "Botón", "ciega_peque": "Ciega Pequeña", "ciega_grande": "Ciega Grande"}
     CIEGA_PEQUE = 1
     CIEGA_GRANDE = CIEGA_PEQUE * 2
+    FLOP = False
+    TURN = False
+    RIVER = False
 
     def __init__(self):
         self.mesa = Mesa()
         self.jugadores_partida = []
-        self.apuesta_maxima = 0
         self.contador_ronda = 0
+        self.fin_ronda = False
         self.fin_juego = False
 
     def orquestar(self):
@@ -31,7 +36,8 @@ class Juego:
         self.iniciar_roles()
 
     def iniciar_jugadores(self):
-        num_jugadores = int(input("Introducir numero de jugadores: "))
+        num_jugadores = Utilidades.preguntar_numero("Introducir el numero de jugadores.\n"
+        "Minimo 2, maximo 10: ", self.MINIMO_JUGADORES, self.MAXIMO_JUGADORES)
         for i in range(num_jugadores):
             nombre = input("Nombre del jugador " + str(i + 1) + ": ")
             jugador = Jugador(nombre)
@@ -58,19 +64,24 @@ class Juego:
             self.jugadores_partida[(indice_boton + 2) % len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_grande"])
 
     def orquestar_fases(self):
-        self.inicial()
-        self.decision_primera()
-        self.gestionar_fichas()
-        self.flop()
-        self.decision_estandar()
-        self.gestionar_fichas()
-        self.turn()
-        self.decision_estandar()
-        self.gestionar_fichas()
-        self.river()
-        self.decision_estandar()
-        self.gestionar_fichas()
-        # self.showdown()
+        try:
+            # while True:
+                self.inicial()
+                self.decision_primera()
+                self.gestionar_atributos()
+                self.flop()
+                self.decision_estandar()
+                self.gestionar_atributos()
+                self.turn()
+                self.decision_estandar()
+                self.gestionar_atributos()
+                self.river()
+                self.decision_estandar()
+                self.gestionar_atributos()
+                # self.showdown()
+        except:
+            print("Victoria por abandono ")
+            #Continuar a la siguiente ronda
 
     def inicial(self):
         self.contador_ronda += 1
@@ -128,9 +139,9 @@ class Juego:
         ciega_encontrada = False
         for jugador in table:
             if jugador.activo and ciega_encontrada:
-                self.preguntar_accion(self.comprueba_apuesta_maxima(), jugador)
-
-                if self.ronda_resuelta():
+                self.preguntar_accion(jugador)
+                if self.fase_resuelta():
+                    self.comprobar_all_in()
                     break
             if jugador.es_ciega_grande():
                 ciega_encontrada = True
@@ -144,47 +155,51 @@ class Juego:
             if jugador.es_ciega_peque():
                 ciega_encontrada = True  
             if jugador.activo and ciega_encontrada:
-                self.preguntar_accion(self.comprueba_apuesta_maxima(), jugador)
-                if self.ronda_resuelta():
+                self.preguntar_accion(jugador)
+                if self.fase_resuelta():
+                    self.comprobar_all_in()
                     break
-        print("ronda resuelta")
+        print("fase resuelta")
 
-    def ronda_resuelta(self):
+    def fase_resuelta(self):
         for jugador in self.jugadores_partida:
             if jugador.activo:
-                if not jugador.ha_actuado or not jugador.esta_fichas_igualadas(self.comprueba_apuesta_maxima()):
+                if not jugador.ha_actuado or not jugador.fichas_igualadas(self.comprueba_apuesta_maxima()):
                     return False
         return True
 
-    def preguntar_accion(self, apuesta_maxima_actual, jugador):
+    def preguntar_accion(self, jugador):
         print("====================================")
         self.mostrar_info()
         print(f"Turno del jugador: {jugador.nombre}")
         jugador.info_jugador()
-        if jugador.fichas_comprometidas_fase == apuesta_maxima_actual:
-            respuesta = Utilidades.preguntar_opcion("Acciones a realizar: P=Pasar I=Igualar S=Subir N=No ir\n"
-                                                    "Indique una accion: ", ["P", "I", "S", "N"])
+        if jugador.fichas_comprometidas_fase == self.comprueba_apuesta_maxima():
+            respuesta = Utilidades.preguntar_opcion("Que desea hacer: P=Pasar, S=Subir.\n"
+                                                    "Indique una accion: ", ["P", "S"])
         else:
-            jugador.info_igualar(apuesta_maxima_actual)
-            respuesta = Utilidades.preguntar_opcion("Acciones a realizar: I=Igualar S=Subir N=No ir\n"
+            jugador.info_igualar(self.comprueba_apuesta_maxima())
+            respuesta = Utilidades.preguntar_opcion("Que desea hacer: I=Igualar, S=Subir, N=No ir.\n"
                                                     "Indique una accion: ", ["I", "S", "N"])
+
         if respuesta == "P":
             jugador.pasar()
             print(str(jugador.nombre) + " ha pasado.")
 
         elif respuesta == "I":
-            apuesta_realizada = jugador.igualar(apuesta_maxima_actual)
+            apuesta_realizada = jugador.igualar(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
             print(str(jugador.nombre) + " ha igualado.")
 
         elif respuesta == "S":
-            apuesta_realizada = jugador.subir(apuesta_maxima_actual)
+            apuesta_realizada = jugador.subir(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
             print(str(jugador.nombre) + " ha subido.")
 
         elif respuesta == "N":
             jugador.no_ir()
             print(str(jugador.nombre) + " no ha ido.")
+
+        self.comprobar_victoria_por_abandono()
 
     def mostrar_info(self):
         print(f"El bote total es: {self.mesa.bote}")
@@ -205,32 +220,87 @@ class Juego:
             cartas_flop = (self.mesa.mazo_mesa.mazo_stdr.pop())
             self.mesa.sacar_carta_mesa(cartas_flop)
         print("ººººººººººººººººººººººººº")
-        print("Las cartas del Flop son:")
+        print("Flop:")
         self.mesa.mostar_mesa()
-        print("ººººººººººººººººººººººººº")
+        self.FLOP = True
 
     def turn(self):
         carta = (self.mesa.mazo_mesa.mazo_stdr.pop())
         self.mesa.sacar_carta_mesa(carta)
         print("ººººººººººººººººººººººººº")
-        print("Las cartas del Turn son:")
+        print("Turn:")
         self.mesa.mostar_mesa()
-        print("ººººººººººººººººººººººººº")
+        self.TURN = True
 
     def river(self):
         carta = (self.mesa.mazo_mesa.mazo_stdr.pop())
         self.mesa.sacar_carta_mesa(carta)
         print("ººººººººººººººººººººººººº")
-        print("Las cartas del River son:")
+        print("River:")
         self.mesa.mostar_mesa()
-        print("ººººººººººººººººººººººººº")
+        self.RIVER = True
 
-    def gestionar_fichas(self):
+    def gestionar_atributos(self):
         self.mesa.sumar_al_bote(self.mesa.bote_fase)
         self.mesa.bote_fase = 0
         for jugador in self.jugadores_partida:
             jugador.fichas_comprometidas_fase = 0
             jugador.ha_actuado = False
+
+    def showdown(self):
+        pass
+
+    def comprobar_victoria_por_abandono(self):
+        cont = 0
+        for jugador in self.jugadores_partida:
+            if jugador.activo:
+                cont += 1
+        if cont < 2:
+            # pasar cantidad del bote_fase al bote total y de ahi al jugador que gana
+
+            raise RuntimeError
+
+    def comprobar_all_in(self):
+        cont = 0
+        for jugador in self.jugadores_partida:
+            if jugador.allin:
+                self.modo_all_in()
+
+    def modo_all_in(self):
+        cont = 0
+        for jugador in self.jugadores_partida:
+            if jugador.activo:
+                cont += 1
+        if cont == 2:
+            self.all_in_simple()
+        else:
+            self.all_in_multiple()
+
+    def all_in_simple(self):
+        print("All-in 2 jugadores.")
+        if not self.FLOP:
+            self.flop()
+            self.turn()
+            self.river()
+            self.showdown()
+            raise RuntimeError
+        elif not self.TURN:
+            self.turn()
+            self.river()
+            self.showdown()
+            raise RuntimeError
+        elif not self.RIVER:
+            self.river()
+            self.showdown()
+            raise RuntimeError
+        else:
+            self.showdown()
+            raise RuntimeError
+
+    def all_in_multiple(self):
+        print("All in con multiples jugadores")
+        # Chiquita movida
+        pass
 
     def comprobar_fin_juego(self):
         return True
