@@ -24,6 +24,9 @@ class Jugador(object):
     def aniadir_carta(self, carta):
         self.mano.append(carta)
 
+    def aniadir_fichas(self, cantidad):
+        self.fichas += cantidad
+
     def no_tiene_fichas(self):
         if self.fichas == 0:
             return True
@@ -58,9 +61,16 @@ class Jugador(object):
 
     def igualar(self, apuesta_maxima_actual):
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
-        self.apuesta(cantidad_a_igualar)
-        self.ha_actuado = True
-        return cantidad_a_igualar
+        if cantidad_a_igualar < self.fichas:
+            self.apuesta(cantidad_a_igualar)
+            self.ha_actuado = True
+            return cantidad_a_igualar
+
+        elif cantidad_a_igualar >= self.fichas:
+            self.apuesta(self.fichas)
+
+
+
 
     def subir(self, apuesta_maxima_actual):
 

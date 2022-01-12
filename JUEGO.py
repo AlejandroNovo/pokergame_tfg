@@ -48,6 +48,8 @@ class Juego(object):
         jugador_boton = self.asignar_boton_aleatorio()
         self.asignar_ciegas(jugador_boton)
         self.imprimir_roles()
+        self.jugadores_partida[0].aniadir_fichas(10)
+        self.jugadores_partida[1].aniadir_fichas(10)
 
     def asignar_boton_aleatorio(self):
         jugador = random.choice(self.jugadores_partida)
@@ -138,15 +140,29 @@ class Juego(object):
         table = cycle(self.jugadores_partida)
         ciega_encontrada = False
         for jugador in table:
-            if jugador.activo and ciega_encontrada:
+            if jugador.activo and ciega_encontrada and not jugador.allin:
                 self.preguntar_accion(jugador)
                 if self.fase_resuelta():
-                    self.comprobar_all_in()
+                    self.comprobar_all_in(self.mesa.bote_fase)
                     break
             if jugador.es_ciega_grande():
                 ciega_encontrada = True
 
-        print("ronda resuelta")
+        print("Fase resuelta")
+
+    def decision_primera1(self):
+        table = cycle(self.jugadores_partida)
+        ciega_encontrada = False
+        for jugador in table:
+            if jugador.activo and ciega_encontrada and not jugador.allin:
+                self.preguntar_accion(jugador)
+                if self.fase_resuelta():
+                    self.comprobar_all_in(self.mesa.bote_fase)
+                    break
+            if jugador.es_ciega_grande():
+                ciega_encontrada = True
+
+        print("Fase resuelta")
 
     def decision_estandar(self):
         table = cycle(self.jugadores_partida)
@@ -154,13 +170,13 @@ class Juego(object):
         for jugador in table:
             if jugador.es_ciega_peque():
                 ciega_encontrada = True  
-            if jugador.activo and ciega_encontrada:
+            if jugador.activo and ciega_encontrada and not jugador.allin:
                 self.preguntar_accion(jugador)
                 if self.fase_resuelta():
-                    self.comprobar_all_in()
+                    self.comprobar_all_in(self.mesa.bote_fase)
                     break
-        print("fase resuelta")
-
+        print("Fase resuelta")
+    # añadir que no se tengan en cuenta a los jugadores que esten all-in para resolver la fase
     def fase_resuelta(self):
         for jugador in self.jugadores_partida:
             if jugador.activo:
@@ -260,13 +276,13 @@ class Juego(object):
 
             raise RuntimeError
 
-    def comprobar_all_in(self):
+    def comprobar_all_in(self, bote_parcial):
         cont = 0
         for jugador in self.jugadores_partida:
             if jugador.allin:
-                self.modo_all_in()
+                self.modo_all_in(bote_parcial)
 
-    def modo_all_in(self):
+    def modo_all_in(self, bote_parcial):
         cont = 0
         for jugador in self.jugadores_partida:
             if jugador.activo:
@@ -274,7 +290,7 @@ class Juego(object):
         if cont == 2:
             self.all_in_simple()
         else:
-            self.all_in_multiple()
+            self.all_in_multiple(bote_parcial)
 
     def all_in_simple(self):
         print("All-in 2 jugadores.")
@@ -297,9 +313,12 @@ class Juego(object):
             self.showdown()
             raise RuntimeError
 
-    def all_in_multiple(self):
+    def all_in_multiple(self, bote_parcial):
         print("All in con multiples jugadores")
         # Chiquita movida
+        bote_parcial = bote_parcial
+        # El jugador que esta en all-in se queda en standby. Los demás jugadores continuan la partida con normalidad
+        # Al final el jugador de all-in solo puede optar al bote_parcial.
         pass
 
     def comprobar_fin_juego(self):
