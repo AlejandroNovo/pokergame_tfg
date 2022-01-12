@@ -68,12 +68,10 @@ class Jugador(object):
 
         elif cantidad_a_igualar >= self.fichas:
             self.apuesta(self.fichas)
-
-
-
+            self.ha_actuado = True
+            return self.fichas
 
     def subir(self, apuesta_maxima_actual):
-
         cantidad_a_subir = Utilidades.preguntar_numero("Introduzca la cantidad que desea Subir: ",
                                                        apuesta_maxima_actual + 1, self.fichas)
         self.apuesta(cantidad_a_subir)
