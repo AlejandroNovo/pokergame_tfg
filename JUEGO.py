@@ -176,9 +176,12 @@ class Juego(object):
                     self.comprobar_all_in(self.mesa.bote_fase)
                     break
         print("Fase resuelta")
+
     # añadir que no se tengan en cuenta a los jugadores que esten all-in para resolver la fase
     def fase_resuelta(self):
         for jugador in self.jugadores_partida:
+            if jugador.allin:
+                continue
             if jugador.activo:
                 if not jugador.ha_actuado or not jugador.fichas_igualadas(self.comprueba_apuesta_maxima()):
                     return False
