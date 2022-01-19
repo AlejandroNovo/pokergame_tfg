@@ -12,7 +12,7 @@ class Jugador(object):
         self.ha_actuado = False
         self.allin = False
         self.fichas_comprometidas_fase = 0
-
+        self.valor_mano = [0, 0, 0, 0, 0, 0] # Primer valor el tipo de combinacion, seguido de los kicker.
 
     def dibujar_mano(self):
         for carta in self.mano:

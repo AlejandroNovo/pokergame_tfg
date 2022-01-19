@@ -3,6 +3,8 @@ import random
 from MESA import Mesa
 from JUGADOR import Jugador
 from Utilidades import Utilidades
+from EVALUADOR import Evaluador
+from CARTA import Carta
 
 
 class Juego(object):
@@ -10,7 +12,6 @@ class Juego(object):
     MAXIMO_JUGADORES = 10
     CARTAS_INICIALES = 2
     CARTAS_FLOP = 3
-    FASES = {0: "inicial", 1: "apuestas", 2: "flop"}
     ROLES = {"boton": "Botón", "ciega_peque": "Ciega Pequeña", "ciega_grande": "Ciega Grande"}
     CIEGA_PEQUE = 1
     CIEGA_GRANDE = CIEGA_PEQUE * 2
@@ -69,18 +70,18 @@ class Juego(object):
         try:
             # while True:
                 self.inicial()
-                self.decision_primera()
-                self.gestionar_atributos()
-                self.flop()
-                self.decision_estandar()
-                self.gestionar_atributos()
-                self.turn()
-                self.decision_estandar()
-                self.gestionar_atributos()
-                self.river()
-                self.decision_estandar()
-                self.gestionar_atributos()
-                # self.showdown()
+            #     self.decision_primera()
+            #     self.gestionar_atributos()
+            #     self.flop()
+            #     self.decision_estandar()
+            #     self.gestionar_atributos()
+            #     self.turn()
+            #     self.decision_estandar()
+            #     self.gestionar_atributos()
+            #     self.river()
+            #     self.decision_estandar()
+            #     self.gestionar_atributos()
+                self.showdown()
         except:
             print("Victoria por abandono ")
             #Continuar a la siguiente ronda
@@ -131,10 +132,41 @@ class Juego(object):
                 self.mesa.sumar_al_bote_fase(self.CIEGA_GRANDE)
 
     def repartir_cartas_iniciales(self):
-        for _ in range(self.CARTAS_INICIALES):
-            for jugador in self.jugadores_partida:
-                carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
-                jugador.aniadir_carta(carta_propia)
+        # for _ in range(self.CARTAS_INICIALES):
+        #     for jugador in self.jugadores_partida:
+        #         carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
+        #         jugador.aniadir_carta(carta_propia)
+        carta1 = Carta(2, "\u2665")
+        carta2 = Carta(8, "\u2660")
+        carta3 = Carta(3, "\u2665")
+        carta4 = Carta(8, "\u2665")
+        carta5 = Carta(6, "\u2666")
+        carta6 = Carta(9, "\u2666")
+        carta7 = Carta(9, "\u2665")
+
+        carta8 = Carta(2, "\u2665")
+        carta9 = Carta(9, "\u2660")
+        carta10 = Carta(3, "\u2665")
+        carta11 = Carta(8, "\u2665")
+        carta12 = Carta(6, "\u2666")
+        carta13 = Carta("J", "\u2660")
+        carta14 = Carta(9, "\u2665")
+        #
+        self.jugadores_partida[0].aniadir_carta(carta1)
+        self.jugadores_partida[0].aniadir_carta(carta2)
+        self.jugadores_partida[0].aniadir_carta(carta3)
+        self.jugadores_partida[0].aniadir_carta(carta4)
+        self.jugadores_partida[0].aniadir_carta(carta5)
+        self.jugadores_partida[0].aniadir_carta(carta6)
+        self.jugadores_partida[0].aniadir_carta(carta7)
+        #
+        self.jugadores_partida[1].aniadir_carta(carta8)
+        self.jugadores_partida[1].aniadir_carta(carta9)
+        self.jugadores_partida[1].aniadir_carta(carta10)
+        self.jugadores_partida[1].aniadir_carta(carta11)
+        self.jugadores_partida[1].aniadir_carta(carta12)
+        self.jugadores_partida[1].aniadir_carta(carta13)
+        self.jugadores_partida[1].aniadir_carta(carta14)
 
     def decision_primera(self):
         table = cycle(self.jugadores_partida)
@@ -267,7 +299,8 @@ class Juego(object):
             jugador.ha_actuado = False
 
     def showdown(self):
-        pass
+        evaluador = Evaluador(self.jugadores_partida, self.mesa.cartas_mesa)
+        evaluador.orquestar_evaluador()
 
     def comprobar_victoria_por_abandono(self):
         cont = 0
