@@ -1,5 +1,4 @@
 import JUEGO
-# Un jugador tendrá en total 7 cartas, 2 de la mano y las 5 de la mesa
 
 
 class Evaluador:
@@ -8,21 +7,36 @@ class Evaluador:
         self.lista_jugadores = lista_jugadores
         self.cartas_mesa = cartas_mesa
 
-        # for carta in self.cartas_mesa:
-        #     carta.dibujar_carta()
-        # for jugador in self.lista_jugadores:
-        #     print(jugador.nombre)
-
     def orquestar_evaluador(self):
+        jugadores_activos = []
         for jugador in self.lista_jugadores:
             if jugador.activo:
-                self.comparador_combinacion(jugador)
-                print(jugador.valor_mano)
+                jugadores_activos.append(jugador)
+
+        for jugador in jugadores_activos:
+            self.comparador_combinacion(jugador)
+            print(jugador.valor_mano)
+            string_ints = [str(int) for int in jugador.valor_mano]
+            jugador.valor_final = "".join(string_ints)
+            print(jugador.valor_final)
+
+        for jugador in jugadores_activos:
+            pass
+
+        # for jugador in jugadores_activos:
+        #
+        #     jugador_actual = jugadores_activos.index(jugador)
+        #     if jugadores_activos[jugador_actual].valor_mano[0] > jugadores_activos[jugador_actual + 1].valor_mano[0]:
+        #         ganador = jugadores_activos[jugador_actual]
+        #     else:
+        #         ganador = jugadores_activos[jugador_actual + 1]
+        #
+        #
+        #     return ganador
 
     def comparador_combinacion(self, jugador):
         cartas_totales = jugador.mano + self.cartas_mesa
         valores = self.vector_valores(cartas_totales)
-
         palos = self.vector_palos(cartas_totales)
 
         escalera_real = self.es_escalera_real(cartas_totales, palos)
@@ -94,7 +108,6 @@ class Evaluador:
                 pareja_menor = doble_pareja[1]
             print(f"La doble pareja es: {pareja_mayor} y {pareja_menor}")
             jugador.valor_mano[0] = 3
-
             jugador.valor_mano[1] = pareja_mayor
             jugador.valor_mano[2] = pareja_menor
             jugador.valor_mano[3] = doble_pareja[3]
@@ -104,12 +117,21 @@ class Evaluador:
         if pareja[0]:
             print(f"La pareja es: {pareja[1]}")
             jugador.valor_mano[0] = 2
+            jugador.valor_mano[1] = pareja[1]
+            cartas_resto = pareja[2]
+            cartas_resto.sort(reverse=True)
+            for i in range(3):
+                jugador.valor_mano[i + 2] = cartas_resto[i]
             return
 
         carta_alta = self.es_carta_alta(valores)
         if carta_alta[0]:
-            print(f"La carta mas alta es: {carta_alta[1]}")
+            cartas_resto = carta_alta[1]
+            cartas_resto.sort(reverse=True)
+            print(f"La carta mas alta es: {cartas_resto[0]}")
             jugador.valor_mano[0] = 1
+            for i in range(5):
+                jugador.valor_mano[i + 1] = cartas_resto[i]
             return
 
 #################################################################################################################
@@ -134,7 +156,6 @@ class Evaluador:
         valores_copia = []
         for valor in valores:
             valores_copia.append(valor)
-
         for valores_mano in valores_copia:
             if valores_copia.count(valores_mano) == 4:
                 numero_poker = valores_mano
@@ -159,7 +180,6 @@ class Evaluador:
                 cartas_color.append(carta)
         if flag:
             return True, cartas_color
-
         return False, cartas_color
 
     def es_escalera(self, valores):
@@ -171,7 +191,6 @@ class Evaluador:
         contador = 0
         if (14 in valores_numericos) and (valores_numericos[0] == 2):
             contador += 1
-
         for i in range(n_valores - 1):
             if valores_numericos[i] == valores_numericos[i + 1] - 1:
                 contador += 1
@@ -183,11 +202,11 @@ class Evaluador:
                 contador = 0
             if contador >= 4:
                 carta_mas_alta = valores_numericos[i + 1]
-                if valores_numericos[i + 1] == valores_numericos[i + 2] - 1:
-                    continue
-                if valores_numericos[i + 1] == valores_numericos[i + 2]:
-                    continue
-
+                if i < n_valores - 2:
+                    if valores_numericos[i + 1] == valores_numericos[i + 2] - 1:
+                        continue
+                    if valores_numericos[i + 1] == valores_numericos[i + 2]:
+                        continue
                 return True, carta_mas_alta
         return False, 0
 
@@ -195,7 +214,6 @@ class Evaluador:
         valores_copia = []
         for valor in valores:
             valores_copia.append(valor)
-
         for valores_mano in valores_copia:
             if valores_copia.count(valores_mano) == 3:
                 numero_trio = valores_mano
@@ -223,14 +241,20 @@ class Evaluador:
         return False, 0, 0, 0
 
     def es_pareja(self, valores):
-        for valores_mano in valores:
-            if valores.count(valores_mano) == 2:
-                return True, valores_mano
-        return False, 0
+        valores_copia = []
+        for valor in valores:
+            valores_copia.append(valor)
+
+        for valores_mano in valores_copia:
+            if valores_copia.count(valores_mano) == 2:
+                numero_pareja = valores_mano
+                for i in range(2):
+                    valores_copia.remove(valores_mano)
+                return True, numero_pareja, valores_copia
+        return False, 0, 0
 
     def es_carta_alta(self, valores):
-        carta_mas_alta = max(valores)
-        return True, carta_mas_alta
+        return True, valores
 
     def vector_valores(self, lista):
         valores = []

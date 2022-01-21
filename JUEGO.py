@@ -136,13 +136,13 @@ class Juego(object):
         #     for jugador in self.jugadores_partida:
         #         carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
         #         jugador.aniadir_carta(carta_propia)
-        carta1 = Carta(2, "\u2665")
+        carta1 = Carta(8, "\u2665")
         carta2 = Carta(8, "\u2660")
-        carta3 = Carta(3, "\u2665")
-        carta4 = Carta(8, "\u2665")
-        carta5 = Carta(6, "\u2666")
-        carta6 = Carta(9, "\u2666")
-        carta7 = Carta(9, "\u2665")
+        carta3 = Carta("T", "\u2665")
+        carta4 = Carta("J", "\u2665")
+        carta5 = Carta(8, "\u2666")
+        carta6 = Carta("A", "\u2666")
+        carta7 = Carta(7, "\u2665")
 
         carta8 = Carta(2, "\u2665")
         carta9 = Carta(9, "\u2660")
@@ -179,21 +179,6 @@ class Juego(object):
                     break
             if jugador.es_ciega_grande():
                 ciega_encontrada = True
-
-        print("Fase resuelta")
-
-    def decision_primera1(self):
-        table = cycle(self.jugadores_partida)
-        ciega_encontrada = False
-        for jugador in table:
-            if jugador.activo and ciega_encontrada and not jugador.allin:
-                self.preguntar_accion(jugador)
-                if self.fase_resuelta():
-                    self.comprobar_all_in(self.mesa.bote_fase)
-                    break
-            if jugador.es_ciega_grande():
-                ciega_encontrada = True
-
         print("Fase resuelta")
 
     def decision_estandar(self):
@@ -209,7 +194,6 @@ class Juego(object):
                     break
         print("Fase resuelta")
 
-    # añadir que no se tengan en cuenta a los jugadores que esten all-in para resolver la fase
     def fase_resuelta(self):
         for jugador in self.jugadores_partida:
             if jugador.allin:
@@ -300,7 +284,8 @@ class Juego(object):
 
     def showdown(self):
         evaluador = Evaluador(self.jugadores_partida, self.mesa.cartas_mesa)
-        evaluador.orquestar_evaluador()
+        ganador = evaluador.orquestar_evaluador()
+        # print(f"El ganador es el jugador: {ganador.nombre}")
 
     def comprobar_victoria_por_abandono(self):
         cont = 0
@@ -313,7 +298,6 @@ class Juego(object):
             raise RuntimeError
 
     def comprobar_all_in(self, bote_parcial):
-        cont = 0
         for jugador in self.jugadores_partida:
             if jugador.allin:
                 self.modo_all_in(bote_parcial)
