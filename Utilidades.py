@@ -12,6 +12,17 @@ class Utilidades:
         return valor
 
     @staticmethod
+    def preguntar_opcion_num(num, opciones):
+        valor = None
+        flag = False
+        while not valor in opciones:
+            if flag:
+                print("Valor incorrecto, intente de nuevo.")
+            valor = int(input(num))
+            flag = True
+        return valor
+
+    @staticmethod
     def preguntar_numero(texto, minimo, maximo):
         valor = minimo-1
         flag = False

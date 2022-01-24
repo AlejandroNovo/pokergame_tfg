@@ -1,10 +1,11 @@
 from Utilidades import Utilidades
+import numpy as np
 
 
 class Jugador(object):
 
-    def __init__(self, nombre):
-        self.nombre = nombre
+    def __init__(self):
+        self.nombre = ""
         self.mano = []
         self.roles = []  # [Dealer, Ciega_Peque, Ciega_Grande]
         self.fichas = 20
@@ -12,8 +13,9 @@ class Jugador(object):
         self.ha_actuado = False
         self.allin = False
         self.fichas_comprometidas_fase = 0
-        self.valor_mano = [0, 0, 0, 0, 0, 0] # Primer valor el tipo de combinacion, seguido de los kicker.
-        self.valor_final = None
+        self.valor_mano = np.zeros(6, dtype=int)
+        self.valor_final = 0
+        self.esIA = False
 
     def dibujar_mano(self):
         for carta in self.mano:
@@ -68,9 +70,10 @@ class Jugador(object):
             return cantidad_a_igualar
 
         elif cantidad_a_igualar >= self.fichas:
+            apostar = self.fichas
             self.apuesta(self.fichas)
             self.ha_actuado = True
-            return self.fichas
+            return apostar
 
     def subir(self, apuesta_maxima_actual):
         cantidad_a_subir = Utilidades.preguntar_numero("Introduzca la cantidad que desea Subir: ",
@@ -92,6 +95,8 @@ class Jugador(object):
             return True
 
     def info_jugador(self):
+        print("===========================================")
+        print(f"        Turno del jugador: {self.nombre}")
         print("Estas son sus cartas: ")
         self.dibujar_mano()
         print(f"Fichas disponible: {self.fichas}")

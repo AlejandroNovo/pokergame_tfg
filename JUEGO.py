@@ -1,9 +1,10 @@
 from itertools import cycle
+import numpy as np
 import random
 from MESA import Mesa
 from JUGADOR import Jugador
-from Utilidades import Utilidades
 from EVALUADOR import Evaluador
+from Utilidades import Utilidades
 from CARTA import Carta
 
 
@@ -30,27 +31,31 @@ class Juego(object):
         self.inicio_partida()
         while not self.fin_juego:
             self.orquestar_fases()
-            self.fin_juego = self.comprobar_fin_juego()
+            if not self.fin_juego:
+                self.fin_juego = self.comprobar_fin_juego()
 
     def inicio_partida(self):
         self.iniciar_jugadores()
         self.iniciar_roles()
 
     def iniciar_jugadores(self):
-        num_jugadores = Utilidades.preguntar_numero("Introducir el numero de jugadores.\n"
+        num_jugadores = Utilidades.preguntar_numero("Introduzca el numero de jugadores.\n"
         "Minimo 2, maximo 10: ", self.MINIMO_JUGADORES, self.MAXIMO_JUGADORES)
         for i in range(num_jugadores):
             nombre = input("Nombre del jugador " + str(i + 1) + ": ")
-            jugador = Jugador(nombre)
+            jugador = Jugador()
+            jugador.nombre = nombre
             self.jugadores_partida.append(jugador)
+        print("")
 
     def iniciar_roles(self):
-        print("Roles iniciales: ")
+        print("          Roles iniciales: ")
+        print("          ~~~~~~~~~~~~~~~~ ")
         jugador_boton = self.asignar_boton_aleatorio()
         self.asignar_ciegas(jugador_boton)
         self.imprimir_roles()
         self.jugadores_partida[0].aniadir_fichas(10)
-        self.jugadores_partida[1].aniadir_fichas(10)
+        # self.jugadores_partida[1].aniadir_fichas(10)
 
     def asignar_boton_aleatorio(self):
         jugador = random.choice(self.jugadores_partida)
@@ -61,45 +66,68 @@ class Juego(object):
         indice_boton = self.jugadores_partida.index(jugador_boton)
         if len(self.jugadores_partida) == 2:
             jugador_boton.asignar_rol(self.ROLES["ciega_peque"])
-            self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_grande"])
+            self.jugadores_partida[(indice_boton + 1) %
+                                   len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_grande"])
         else:
-            self.jugadores_partida[(indice_boton + 1) % len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_peque"])
-            self.jugadores_partida[(indice_boton + 2) % len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_grande"])
+            self.jugadores_partida[(indice_boton + 1) %
+                                   len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_peque"])
+            self.jugadores_partida[(indice_boton + 2) %
+                                   len(self.jugadores_partida)].asignar_rol(self.ROLES["ciega_grande"])
 
     def orquestar_fases(self):
         try:
-            # while True:
-                self.inicial()
-            #     self.decision_primera()
-            #     self.gestionar_atributos()
-            #     self.flop()
-            #     self.decision_estandar()
-            #     self.gestionar_atributos()
-            #     self.turn()
-            #     self.decision_estandar()
-            #     self.gestionar_atributos()
-            #     self.river()
-            #     self.decision_estandar()
-            #     self.gestionar_atributos()
-                self.showdown()
+            self.inicial()
+            self.decision_primera()
+            self.gestionar_atributos()
+            self.flop()
+            self.decision_estandar()
+            self.gestionar_atributos()
+            self.turn()
+            self.decision_estandar()
+            self.gestionar_atributos()
+            self.river()
+            self.decision_estandar()
+            self.gestionar_atributos()
+            self.showdown()
         except:
-            print("Victoria por abandono ")
-            #Continuar a la siguiente ronda
+            if not self.fin_juego:
+                self.fin_juego = self.comprobar_fin_juego()
+            while not self.fin_juego:
+                self.orquestar_fases()
+                self.fin_juego = self.comprobar_fin_juego()
 
     def inicial(self):
+
         self.contador_ronda += 1
+        print("*******************************************")
+        print(f"             Ronda numero: {self.contador_ronda}")
+        print("*******************************************")
+        print("")
         self.mesa.mazo_mesa.barajar_fisher_yates()
         if self.contador_ronda != 1:
+            self.valores_iniciales()
             self.actualizar_roles()
 
         self.pagan_ciegas()
         self.repartir_cartas_iniciales()
 
+    def valores_iniciales(self):
+        for jugador in self.jugadores_partida:
+            jugador.activo = True
+            jugador.allin = False
+            jugador.mano.clear()
+            jugador.valor_mano = np.zeros(6, dtype=int)
+            jugador.valor_final = 0
+        self.mesa.bote = 0
+        self.FLOP = False
+        self.TURN = False
+        self.RIVER = False
+        self.mesa.cartas_mesa.clear()
+
     def actualizar_roles(self):
-        print("Roles actualizados:")
+        print("          Roles actualizados:")
+        print("          ~~~~~~~~~~~~~~~~~~~")
         indice_boton = 0
-        # self.jugadores_partida[0].fichas = 0
-        # self.jugadores_partida[1].fichas = 0
         for jugador in self.jugadores_partida:
             if jugador.es_boton():
                 indice_boton = self.jugadores_partida.index(jugador)
@@ -132,41 +160,41 @@ class Juego(object):
                 self.mesa.sumar_al_bote_fase(self.CIEGA_GRANDE)
 
     def repartir_cartas_iniciales(self):
-        # for _ in range(self.CARTAS_INICIALES):
-        #     for jugador in self.jugadores_partida:
-        #         carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
-        #         jugador.aniadir_carta(carta_propia)
-        carta1 = Carta(8, "\u2665")
-        carta2 = Carta(8, "\u2660")
-        carta3 = Carta("T", "\u2665")
-        carta4 = Carta("J", "\u2665")
-        carta5 = Carta(8, "\u2666")
-        carta6 = Carta("A", "\u2666")
-        carta7 = Carta(7, "\u2665")
-
-        carta8 = Carta(2, "\u2665")
-        carta9 = Carta(9, "\u2660")
-        carta10 = Carta(3, "\u2665")
-        carta11 = Carta(8, "\u2665")
-        carta12 = Carta(6, "\u2666")
-        carta13 = Carta("J", "\u2660")
-        carta14 = Carta(9, "\u2665")
-        #
-        self.jugadores_partida[0].aniadir_carta(carta1)
-        self.jugadores_partida[0].aniadir_carta(carta2)
-        self.jugadores_partida[0].aniadir_carta(carta3)
-        self.jugadores_partida[0].aniadir_carta(carta4)
-        self.jugadores_partida[0].aniadir_carta(carta5)
-        self.jugadores_partida[0].aniadir_carta(carta6)
-        self.jugadores_partida[0].aniadir_carta(carta7)
-        #
-        self.jugadores_partida[1].aniadir_carta(carta8)
-        self.jugadores_partida[1].aniadir_carta(carta9)
-        self.jugadores_partida[1].aniadir_carta(carta10)
-        self.jugadores_partida[1].aniadir_carta(carta11)
-        self.jugadores_partida[1].aniadir_carta(carta12)
-        self.jugadores_partida[1].aniadir_carta(carta13)
-        self.jugadores_partida[1].aniadir_carta(carta14)
+        for _ in range(self.CARTAS_INICIALES):
+            for jugador in self.jugadores_partida:
+                carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
+                jugador.aniadir_carta(carta_propia)
+        # carta1 = Carta(8, "\u2663")
+        # carta2 = Carta(3, "\u2660")
+        # carta3 = Carta(9, "\u2665")
+        # carta4 = Carta(9, "\u2663")
+        # carta5 = Carta("Q", "\u2663")
+        # carta6 = Carta(7, "\u2663")
+        # carta7 = Carta("Q", "\u2660")
+        # #
+        # carta8 = Carta(8, "\u2663")
+        # carta9 = Carta(3, "\u2660")
+        # carta10 = Carta(9, "\u2665")
+        # carta11 = Carta(9, "\u2663")
+        # carta12 = Carta("Q", "\u2663")
+        # carta13 = Carta(6, "\u2665")
+        # carta14 = Carta(7, "\u2665")
+        # # #
+        # self.jugadores_partida[0].aniadir_carta(carta1)
+        # self.jugadores_partida[0].aniadir_carta(carta2)
+        # self.jugadores_partida[0].aniadir_carta(carta3)
+        # self.jugadores_partida[0].aniadir_carta(carta4)
+        # self.jugadores_partida[0].aniadir_carta(carta5)
+        # self.jugadores_partida[0].aniadir_carta(carta6)
+        # self.jugadores_partida[0].aniadir_carta(carta7)
+        # # #
+        # self.jugadores_partida[1].aniadir_carta(carta8)
+        # self.jugadores_partida[1].aniadir_carta(carta9)
+        # self.jugadores_partida[1].aniadir_carta(carta10)
+        # self.jugadores_partida[1].aniadir_carta(carta11)
+        # self.jugadores_partida[1].aniadir_carta(carta12)
+        # self.jugadores_partida[1].aniadir_carta(carta13)
+        # self.jugadores_partida[1].aniadir_carta(carta14)
 
     def decision_primera(self):
         table = cycle(self.jugadores_partida)
@@ -179,7 +207,6 @@ class Juego(object):
                     break
             if jugador.es_ciega_grande():
                 ciega_encontrada = True
-        print("Fase resuelta")
 
     def decision_estandar(self):
         table = cycle(self.jugadores_partida)
@@ -192,7 +219,6 @@ class Juego(object):
                 if self.fase_resuelta():
                     self.comprobar_all_in(self.mesa.bote_fase)
                     break
-        print("Fase resuelta")
 
     def fase_resuelta(self):
         for jugador in self.jugadores_partida:
@@ -204,10 +230,9 @@ class Juego(object):
         return True
 
     def preguntar_accion(self, jugador):
-        print("====================================")
-        self.mostrar_info()
-        print(f"Turno del jugador: {jugador.nombre}")
+
         jugador.info_jugador()
+        self.mostrar_info()
         if jugador.fichas_comprometidas_fase == self.comprueba_apuesta_maxima():
             respuesta = Utilidades.preguntar_opcion("Que desea hacer: P=Pasar, S=Subir.\n"
                                                     "Indique una accion: ", ["P", "S"])
@@ -219,20 +244,24 @@ class Juego(object):
         if respuesta == "P":
             jugador.pasar()
             print(str(jugador.nombre) + " ha pasado.")
+            print("")
 
         elif respuesta == "I":
             apuesta_realizada = jugador.igualar(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
             print(str(jugador.nombre) + " ha igualado.")
+            print("")
 
         elif respuesta == "S":
             apuesta_realizada = jugador.subir(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
             print(str(jugador.nombre) + " ha subido.")
+            print("")
 
         elif respuesta == "N":
             jugador.no_ir()
             print(str(jugador.nombre) + " no ha ido.")
+            print("")
 
         self.comprobar_victoria_por_abandono()
 
@@ -243,6 +272,7 @@ class Juego(object):
     def imprimir_roles(self):
         for jugador in self.jugadores_partida:
             print(jugador.nombre, jugador.roles)
+        print("")
 
     def comprueba_apuesta_maxima(self):
         lista_apuestas_jugadores = []
@@ -254,24 +284,24 @@ class Juego(object):
         for _ in range(self.CARTAS_FLOP):
             cartas_flop = (self.mesa.mazo_mesa.mazo_stdr.pop())
             self.mesa.sacar_carta_mesa(cartas_flop)
-        print("ººººººººººººººººººººººººº")
-        print("Flop:")
+        print("ººººººººººººººººººººººººººººººººººººººººººº")
+        print("                FLOP:")
         self.mesa.mostar_mesa()
         self.FLOP = True
 
     def turn(self):
         carta = (self.mesa.mazo_mesa.mazo_stdr.pop())
         self.mesa.sacar_carta_mesa(carta)
-        print("ººººººººººººººººººººººººº")
-        print("Turn:")
+        print("ººººººººººººººººººººººººººººººººººººººººººº")
+        print("                TURN:")
         self.mesa.mostar_mesa()
         self.TURN = True
 
     def river(self):
         carta = (self.mesa.mazo_mesa.mazo_stdr.pop())
         self.mesa.sacar_carta_mesa(carta)
-        print("ººººººººººººººººººººººººº")
-        print("River:")
+        print("ººººººººººººººººººººººººººººººººººººººººººº")
+        print("                RIVER:")
         self.mesa.mostar_mesa()
         self.RIVER = True
 
@@ -284,17 +314,37 @@ class Juego(object):
 
     def showdown(self):
         evaluador = Evaluador(self.jugadores_partida, self.mesa.cartas_mesa)
-        ganador = evaluador.orquestar_evaluador()
-        # print(f"El ganador es el jugador: {ganador.nombre}")
+        ganadores = evaluador.orquestar_evaluador()
+        particion_bote = int(self.mesa.bote/len(ganadores))
+        print("···········································")
+        for jugador in ganadores:
+            jugador.aniadir_fichas(particion_bote)
+            print(f"El jugador {jugador.nombre} ha ganado la ronda {self.contador_ronda}, con"
+                  f": {particion_bote} fichas.")
+        print("")
+        print("")
 
     def comprobar_victoria_por_abandono(self):
         cont = 0
+        jugador_ganador = None
         for jugador in self.jugadores_partida:
             if jugador.activo:
+                jugador_ganador = jugador
                 cont += 1
         if cont < 2:
-            # pasar cantidad del bote_fase al bote total y de ahi al jugador que gana
-
+            print("          Victoria por abandono ")
+            self.mesa.sumar_al_bote(self.mesa.bote_fase)
+            self.mesa.bote_fase = 0
+            jugador_ganador.aniadir_fichas(self.mesa.bote)
+            for jugador in self.jugadores_partida: # Para resetear los valores sin pasar por gestion de atributos
+                jugador.fichas_comprometidas_fase = 0
+                jugador.ha_actuado = False
+            print("···········································")
+            for jugador in self.jugadores_partida:
+                if jugador.activo:
+                    print(f"El jugador {jugador.nombre} ha ganado un bote de: {self.mesa.bote} fichas.")
+                    print("")
+                    print("")
             raise RuntimeError
 
     def comprobar_all_in(self, bote_parcial):
@@ -313,23 +363,39 @@ class Juego(object):
             self.all_in_multiple(bote_parcial)
 
     def all_in_simple(self):
-        print("All-in 2 jugadores.")
+        cantidad_abonar = 0
+        ap_max = self.comprueba_apuesta_maxima()
+        for jugador in self.jugadores_partida:
+            if jugador.allin:
+                if jugador.fichas_comprometidas_fase < ap_max:
+                    cantidad_abonar = (ap_max - jugador.fichas_comprometidas_fase)
+
+        for jugador in self.jugadores_partida:
+            if jugador.fichas_comprometidas_fase == ap_max:
+                self.mesa.sumar_al_bote_fase(-cantidad_abonar)
+                jugador.aniadir_fichas(cantidad_abonar)
+
+        print("All-in 2 con jugadores.")
         if not self.FLOP:
             self.flop()
             self.turn()
             self.river()
+            self.gestionar_atributos()
             self.showdown()
             raise RuntimeError
         elif not self.TURN:
             self.turn()
             self.river()
+            self.gestionar_atributos()
             self.showdown()
             raise RuntimeError
         elif not self.RIVER:
             self.river()
+            self.gestionar_atributos()
             self.showdown()
             raise RuntimeError
         else:
+            self.gestionar_atributos()
             self.showdown()
             raise RuntimeError
 
@@ -342,4 +408,17 @@ class Juego(object):
         pass
 
     def comprobar_fin_juego(self):
-        return True
+        if not self.fin_juego:    # si no había fin de juego compruebas si ahora lo hay
+            cont = 0
+            jugador_ganador = None
+            for jugador in self.jugadores_partida:
+                if jugador.fichas > 0:
+                    jugador_ganador = jugador
+                    cont += 1
+            if cont <= 1:
+                print(f"El ganador de la partida es el jugador {jugador_ganador.nombre}"
+                      f" con {jugador_ganador.fichas} fichas.")
+                return True   # si hay sólo un jugador vivo fin de juego = true
+            return False   # si hay más de un jugador vivo no es fin de juego
+        else:  # si ya había un fin de juego devuelves un true
+            return True
