@@ -1,6 +1,3 @@
-import JUEGO
-
-
 class Evaluador:
 
     def __init__(self, lista_jugadores, cartas_mesa):
@@ -8,13 +5,14 @@ class Evaluador:
         self.cartas_mesa = cartas_mesa
 
     def orquestar_evaluador(self):
+        print("X X X X X X X X X X X X X X X X X X X X X X")
         jugadores_activos = []
         for jugador in self.lista_jugadores:
             if jugador.activo:
                 jugadores_activos.append(jugador)
-        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
         for jugador in jugadores_activos:
-            self.comparador_combinacion(jugador)
+            self.evaluar_combinacion(jugador)
             jugador.valor_final = self.conversor_letras(jugador.valor_mano)
             jugador.valor_final = ("".join(jugador.valor_final))
             jugador.valor_final = int(jugador.valor_final, 16)
@@ -33,7 +31,7 @@ class Evaluador:
 
         return jugadores_ganadores
 
-    def comparador_combinacion(self, jugador):
+    def evaluar_combinacion(self, jugador):
         cartas_totales = jugador.mano + self.cartas_mesa
         valores = self.vector_valores(cartas_totales)
         palos = self.vector_palos(cartas_totales)
@@ -258,7 +256,7 @@ class Evaluador:
 
 #################################################################################################################
 
-    def vector_valores(self, lista):
+    def vector_valores(self, lista):   # Para simplificar las comparaciones
         valores = []
         for carta in lista:
             if carta.valor == "T":
@@ -275,13 +273,13 @@ class Evaluador:
                 valores.append(int(carta.valor))
         return valores
 
-    def vector_palos(self, lista):
+    def vector_palos(self, lista):    # Para simplificar la comparación de cuando hay color
         palos = []
         for carta in lista:
             palos.append(carta.palo)
         return palos
 
-    def conversor_letras(self, vector):
+    def conversor_letras(self, vector):    # Para hexadecimal
         valores = []
         for numero in vector:
             if numero == 10:

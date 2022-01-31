@@ -105,13 +105,13 @@ class Juego(object):
         print("")
         self.mesa.mazo_mesa.barajar_fisher_yates()
         if self.contador_ronda != 1:
-            self.valores_iniciales()
+            self.actualizar_valores()
             self.actualizar_roles()
 
         self.pagan_ciegas()
         self.repartir_cartas_iniciales()
 
-    def valores_iniciales(self):
+    def actualizar_valores(self):
         for jugador in self.jugadores_partida:
             jugador.activo = True
             jugador.allin = False
@@ -230,7 +230,7 @@ class Juego(object):
         return True
 
     def preguntar_accion(self, jugador):
-
+        apuesta_realizada = 0
         jugador.info_jugador()
         self.mostrar_info()
         if jugador.fichas_comprometidas_fase == self.comprueba_apuesta_maxima():
@@ -249,13 +249,13 @@ class Juego(object):
         elif respuesta == "I":
             apuesta_realizada = jugador.igualar(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
-            print(str(jugador.nombre) + " ha igualado.")
+            print(str(jugador.nombre) + f" ha igualado {apuesta_realizada} fichas.")
             print("")
 
         elif respuesta == "S":
-            apuesta_realizada = jugador.subir(self.comprueba_apuesta_maxima())
+            apuesta_realizada = jugador.subir_estandar(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
-            print(str(jugador.nombre) + " ha subido.")
+            print(str(jugador.nombre) + f" ha subido {apuesta_realizada} fichas.")
             print("")
 
         elif respuesta == "N":
@@ -264,6 +264,7 @@ class Juego(object):
             print("")
 
         self.comprobar_victoria_por_abandono()
+        return apuesta_realizada
 
     def mostrar_info(self):
         print(f"El bote total es: {self.mesa.bote}")
@@ -363,6 +364,7 @@ class Juego(object):
             self.all_in_multiple(bote_parcial)
 
     def all_in_simple(self):
+        print("All-in 2 con jugadores.")
         cantidad_abonar = 0
         ap_max = self.comprueba_apuesta_maxima()
         for jugador in self.jugadores_partida:
@@ -375,7 +377,6 @@ class Juego(object):
                 self.mesa.sumar_al_bote_fase(-cantidad_abonar)
                 jugador.aniadir_fichas(cantidad_abonar)
 
-        print("All-in 2 con jugadores.")
         if not self.FLOP:
             self.flop()
             self.turn()

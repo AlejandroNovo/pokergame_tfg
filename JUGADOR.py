@@ -17,6 +17,7 @@ class Jugador(object):
         self.valor_final = 0
         self.esIA = False
 
+
     def dibujar_mano(self):
         for carta in self.mano:
             carta.dibujar_carta()
@@ -75,9 +76,10 @@ class Jugador(object):
             self.ha_actuado = True
             return apostar
 
-    def subir(self, apuesta_maxima_actual):
+    def subir_estandar(self, apuesta_maxima_actual):
+        cantidad_minima_subir = apuesta_maxima_actual - self.fichas_comprometidas_fase
         cantidad_a_subir = Utilidades.preguntar_numero("Introduzca la cantidad que desea Subir: ",
-                                                       apuesta_maxima_actual + 1, self.fichas)
+                                                       cantidad_minima_subir, self.fichas)
         self.apuesta(cantidad_a_subir)
         self.ha_actuado = True
         return cantidad_a_subir

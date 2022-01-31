@@ -1,4 +1,4 @@
-from JUEGO import Juego, Utilidades
+from JUEGOIA import *
 
 print("-------------------------------------------")
 print("          POKER TEXAS HOLD'EM")
@@ -23,7 +23,8 @@ if respuesta == 2:
     print("    Partida contra Inteligencia Artificial")
     print("++++++++++++++++++++++++++++++++++++++++++++++++++")
     print("")
-
+    juego = JuegoIA()
+    juego.orquestar()
 
     print("Gracias por jugar.")
 
