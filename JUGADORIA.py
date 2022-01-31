@@ -3,6 +3,7 @@ from EVALUADOR import Evaluador
 from JUGADOR import Jugador
 from random import choice
 
+
 class JugadorIA(Jugador):
 
     def __init__(self):
@@ -64,7 +65,7 @@ class JugadorIA(Jugador):
             return self.decision_preflop(bote_mesa, ultima_apuesta_rival)
 
         elif len(cartas_evaluar) == 5:
-            return self.decision_flop()
+            return self.decision_flop(mesa.cartas_mesa)
 
         elif len(cartas_evaluar) == 6:
             return self.decision_turn()
@@ -95,6 +96,7 @@ class JugadorIA(Jugador):
                 fuerza_subida = igual[2]
                 print(f"No estamos iguales, han subido {cantidad_subida}")
                 print(f"La fuerza de su subida es {fuerza_subida}")
+
                 if fuerza_subida == 4:
                     if valor_fuerza_mano == 5:
                         return "S4"
@@ -104,6 +106,7 @@ class JugadorIA(Jugador):
                         return "I"
                     elif 0 <= valor_fuerza_mano <= 1:
                         return "N"
+
                 elif fuerza_subida == 3:
                     if 4 <= valor_fuerza_mano <= 5:
                         return "S4"
@@ -111,6 +114,7 @@ class JugadorIA(Jugador):
                         return "S2"
                     elif 0 <= valor_fuerza_mano <= 1:
                         return "N"
+
                 elif fuerza_subida == 2:
                     if 4 <= valor_fuerza_mano <= 5:
                         return "S3"
@@ -118,6 +122,7 @@ class JugadorIA(Jugador):
                         return "S1"
                     elif 0 <= valor_fuerza_mano <= 1:
                         return "I"
+
                 elif fuerza_subida == 1:
                     if 4 <= valor_fuerza_mano <= 5:
                         return "S4"
@@ -173,7 +178,6 @@ class JugadorIA(Jugador):
                 fuerza_subida = 1
             return False, ultima_apuesta_rival, fuerza_subida
 
-
     def comprueba_posicion(self):
         if self.es_boton():
             self.posicion = True
@@ -186,9 +190,9 @@ class JugadorIA(Jugador):
         sum = valores[0] + valores[1]
         if 4 <= sum <= 10:
             return 0
-        elif 11 <= sum <= 20:
+        elif 11 <= sum <= 18:
             return 1
-        elif 21 <= sum <= 28:
+        elif 19 <= sum <= 28:
             return 2
 
     def comprueba_pocket_pair(self, valores):
@@ -205,8 +209,13 @@ class JugadorIA(Jugador):
                 return True
         return False
 
-    def decision_flop(self):
+    def decision_flop(self, cartas_mesa):
         print("Decision Flop")
+        evaluador = Evaluador(self, cartas_mesa)
+        evaluador.evaluar_ia(self)
+        print(self.valor_mano)
+        mano_ligada = (self.valor_mano[0])
+        print(mano_ligada)
 
     def decision_turn(self):
         print("Decision Turn")
