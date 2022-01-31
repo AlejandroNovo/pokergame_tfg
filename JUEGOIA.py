@@ -10,11 +10,10 @@ class JuegoIA(Juego):
 
     def iniciar_jugadores(self):
         jugador = Jugador()
-        IA = JugadorIA()
         nombre = input("Elija el nombre del jugador: ")
         jugador.nombre = nombre
         self.jugadores_partida.append(jugador)
-        self.jugadores_partida.append(IA)
+        self.jugadores_partida.append(JugadorIA())
         print("")
 
     def preguntar_accion(self, jugador):
@@ -25,6 +24,7 @@ class JuegoIA(Juego):
         if jugador.esIA:
             jugador.info_jugador()
             respuesta = jugador.tomar_decision(self.mesa, self.ultima_apuesta_rival)
+            print(f"Respuesta {respuesta}")
 
             if respuesta == "P":
                 jugador.pasar()
@@ -37,7 +37,7 @@ class JuegoIA(Juego):
                 print(str(jugador.nombre) + f" ha igualado {apuesta_realizada} fichas.")
                 print("")
 
-            elif respuesta == "S1" or "S2" or "S3" or "S4":
+            elif respuesta == "S1" or respuesta == "S2" or respuesta == "S3" or respuesta == "S4":
                 apuesta_realizada = 0
                 if respuesta == "S1":
                     apuesta_realizada = jugador.subir_ia("subida_estandar", self.mesa.bote_fase,

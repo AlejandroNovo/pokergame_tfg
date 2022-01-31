@@ -75,7 +75,7 @@ class JugadorIA(Jugador):
     def decision_preflop(self, bote, ultima_apuesta_rival):
         print("Decision Pre-Flop")
         valor_fuerza_mano = self.fuerza_mano()
-        print(valor_fuerza_mano)
+        print(f"Valor fuerza mano: {valor_fuerza_mano}")
 
         igual = self.comprueba_igualdad(bote, ultima_apuesta_rival)
         if igual[0]:

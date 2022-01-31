@@ -160,36 +160,36 @@ class Juego(object):
                 self.mesa.sumar_al_bote_fase(self.CIEGA_GRANDE)
 
     def repartir_cartas_iniciales(self):
-        for _ in range(self.CARTAS_INICIALES):
-            for jugador in self.jugadores_partida:
-                carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
-                jugador.aniadir_carta(carta_propia)
-        # carta1 = Carta(8, "\u2663")
-        # carta2 = Carta(3, "\u2660")
+        #for _ in range(self.CARTAS_INICIALES):
+        #   for jugador in self.jugadores_partida:
+        #        carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
+        #       jugador.aniadir_carta(carta_propia)
+        carta1 = Carta(8, "\u2663")
+        carta2 = Carta(3, "\u2660")
         # carta3 = Carta(9, "\u2665")
         # carta4 = Carta(9, "\u2663")
         # carta5 = Carta("Q", "\u2663")
         # carta6 = Carta(7, "\u2663")
         # carta7 = Carta("Q", "\u2660")
         # #
-        # carta8 = Carta(8, "\u2663")
-        # carta9 = Carta(3, "\u2660")
+        carta8 = Carta(2, "\u2663")
+        carta9 = Carta(3, "\u2660")
         # carta10 = Carta(9, "\u2665")
         # carta11 = Carta(9, "\u2663")
         # carta12 = Carta("Q", "\u2663")
         # carta13 = Carta(6, "\u2665")
         # carta14 = Carta(7, "\u2665")
         # # #
-        # self.jugadores_partida[0].aniadir_carta(carta1)
-        # self.jugadores_partida[0].aniadir_carta(carta2)
+        self.jugadores_partida[0].aniadir_carta(carta1)
+        self.jugadores_partida[0].aniadir_carta(carta2)
         # self.jugadores_partida[0].aniadir_carta(carta3)
         # self.jugadores_partida[0].aniadir_carta(carta4)
         # self.jugadores_partida[0].aniadir_carta(carta5)
         # self.jugadores_partida[0].aniadir_carta(carta6)
         # self.jugadores_partida[0].aniadir_carta(carta7)
         # # #
-        # self.jugadores_partida[1].aniadir_carta(carta8)
-        # self.jugadores_partida[1].aniadir_carta(carta9)
+        self.jugadores_partida[1].aniadir_carta(carta8)
+        self.jugadores_partida[1].aniadir_carta(carta9)
         # self.jugadores_partida[1].aniadir_carta(carta10)
         # self.jugadores_partida[1].aniadir_carta(carta11)
         # self.jugadores_partida[1].aniadir_carta(carta12)
