@@ -7,6 +7,7 @@ class Mesa(object):
         self.cartas_mesa = []
         self.bote = 0
         self.bote_fase = 0
+        self.bote_dinamico = 0
 
     def sacar_carta_mesa(self, carta):
         self.cartas_mesa.append(carta)
@@ -20,8 +21,7 @@ class Mesa(object):
 
     def sumar_al_bote_fase(self, cantidad):
         self.bote_fase += cantidad
-
-
+        self.bote_dinamico += cantidad
 
 
 

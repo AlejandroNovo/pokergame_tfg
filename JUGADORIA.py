@@ -12,14 +12,13 @@ class JugadorIA(Jugador):
         self.nombre = "IA"
         self.esIA = True
         self.posicion = False
-        self.han_subido = False
-        self.pocket_pair = False
-        self.suited = False
+        self.esta_en_preflop = False
+        self.esta_en_postflop = False
 
     def subir_ia(self, tipo_subida, bote, apuesta_maxima_actual):
         cantidad_a_subir = 0
         cantidad_minima_subir = apuesta_maxima_actual - self.fichas_comprometidas_fase
-
+        print(f"La cantidad minima a subir es {cantidad_minima_subir}")
         # en funcion del tipo_subida se pasa un valor a subir u otro
 
         if tipo_subida == "subida_estandar":
@@ -28,6 +27,8 @@ class JugadorIA(Jugador):
             if cantidad_a_subir >= self.fichas:                              # Pero no puede pasarse del cantidad total
                 cantidad_a_subir = self.fichas
             print(f"SUBIDA ESTANDAR, LA CANTIDAD A SUBIR ES {cantidad_a_subir}")
+            if cantidad_a_subir == cantidad_minima_subir:
+                return self.igualar(apuesta_maxima_actual)
 
         elif tipo_subida == "subida_media":
             cantidad_a_subir = round(bote/2)
@@ -36,6 +37,8 @@ class JugadorIA(Jugador):
             elif cantidad_a_subir <= cantidad_minima_subir:
                 cantidad_a_subir = cantidad_minima_subir
             print(f"SUBIDA MEDIA, LA CANTIDAD A SUBIR ES {cantidad_a_subir}")
+            if cantidad_a_subir == cantidad_minima_subir:
+                return self.igualar(apuesta_maxima_actual)
 
         elif tipo_subida == "subida_fuerte":
             cantidad_a_subir = int(bote)
@@ -44,6 +47,8 @@ class JugadorIA(Jugador):
             elif cantidad_a_subir <= cantidad_minima_subir:
                 cantidad_a_subir = cantidad_minima_subir
             print(f"SUBIDA FUERTE, LA CANTIDAD A SUBIR ES {cantidad_a_subir}")
+            if cantidad_a_subir == cantidad_minima_subir:
+                return self.igualar(apuesta_maxima_actual)
 
         elif tipo_subida == "subida_muy_fuerte":
             cantidad_a_subir = int(2*bote)
@@ -52,35 +57,51 @@ class JugadorIA(Jugador):
             elif cantidad_a_subir <= cantidad_minima_subir:
                 cantidad_a_subir = cantidad_minima_subir
             print(f"SUBIDA MUY FUERTE, LA CANTIDAD A SUBIR ES {cantidad_a_subir}")
+            if cantidad_a_subir == cantidad_minima_subir:
+                return self.igualar(apuesta_maxima_actual)
 
         self.apuesta(cantidad_a_subir)
         self.ha_actuado = True
+        print(str(self.nombre) + f" ha subido {cantidad_a_subir} fichas.")
+        print("")
         return cantidad_a_subir
 
     def tomar_decision(self, mesa, ultima_apuesta_rival):
         bote_mesa = mesa.bote_fase
         cartas_evaluar = self.mano + mesa.cartas_mesa
         print(f"Ultima apuesta del rival : {ultima_apuesta_rival}")
+
         if len(cartas_evaluar) == 2:
             return self.decision_preflop(bote_mesa, ultima_apuesta_rival)
 
-        # elif len(cartas_evaluar) == 5:
-        #    return self.decision_flop(mesa.cartas_mesa, bote_mesa, ultima_apuesta_rival)
+        elif len(cartas_evaluar) == 5:
+            return self.decision_flop(mesa.cartas_mesa, bote_mesa, ultima_apuesta_rival)
 
         elif len(cartas_evaluar) == 6:
-            return self.decision_turn()
+            return self.decision_turn(mesa.cartas_mesa, bote_mesa, ultima_apuesta_rival)
 
         elif len(cartas_evaluar) == 7:
-            return self.decision_river()
+            return self.decision_river(mesa.cartas_mesa, bote_mesa, ultima_apuesta_rival)
 
     def decision_preflop(self, bote, ultima_apuesta_rival):
         print("Decision Pre-Flop")
+        self.esta_en_preflop = True
         valor_fuerza_mano = self.fuerza_mano_preflop()
         print(f"Valor fuerza mano: {valor_fuerza_mano}")
-        return self.perfil_indiscrimiado_agresivo(valor_fuerza_mano, ultima_apuesta_rival, bote)
+        return self.perfil_IA(valor_fuerza_mano, ultima_apuesta_rival, bote)
+
+    def decision_flop(self, cartas_mesa, bote, ultima_apuesta_rival):
+        print("Decision Flop")
+        self.esta_en_preflop = False
+        self.esta_en_postflop = True
+        valor_fuerza_mano = self.fuerza_mano_postflop(cartas_mesa)
+        print(f"Valor fuerza mano: {valor_fuerza_mano}")
+        return self.perfil_IA(valor_fuerza_mano, ultima_apuesta_rival, bote)
 
     '''def decision_flop(self, cartas_mesa, bote, ultima_apuesta_rival):
         print("Decision Flop")
+        self.estado_preflop = False
+        self.estado_postflop = True
         valor_fuerza_mano = self.fuerza_mano_postflop(cartas_mesa)
         print(f"Valor fuerza mano: {valor_fuerza_mano}")
         # igual = self.compueba_igualdad_postflop(bote, ultima_apuesta_rival)
@@ -133,13 +154,17 @@ class JugadorIA(Jugador):
                 elif 0 <= valor_fuerza_mano <= 1:
                     return "S1" 
                     '''
-    def decision_turn(self):
+    def decision_turn(self, cartas_mesa, bote, ultima_apuesta_rival):
         print("Decision Turn")
-        pass
+        valor_fuerza_mano = self.fuerza_mano_postflop(cartas_mesa)
+        print(f"Valor fuerza mano: {valor_fuerza_mano}")
+        return self.perfil_IA(valor_fuerza_mano, ultima_apuesta_rival, bote)
 
-    def decision_river(self):
+    def decision_river(self, cartas_mesa, bote, ultima_apuesta_rival):
         print("Decision River")
-        pass
+        valor_fuerza_mano = self.fuerza_mano_postflop(cartas_mesa)
+        print(f"Valor fuerza mano: {valor_fuerza_mano}")
+        return self.perfil_IA(valor_fuerza_mano, ultima_apuesta_rival, bote)
 
     def fuerza_mano_preflop(self):
 
@@ -183,7 +208,7 @@ class JugadorIA(Jugador):
             # return self.calcular_fuerza_subida(ultima_apuesta_rival, bote_sin_ultima_apuesta)
             # return "han_subido" '''
 
-    def compueba_igualdad_postflop(self, bote, ultima_apuesta_rival):
+    '''def compueba_igualdad_postflop(self, bote, ultima_apuesta_rival):
         bote_sin_ultima_apuesta = bote - ultima_apuesta_rival
 
         if self.posicion and ultima_apuesta_rival == 0:    # Tenemos primer turno
@@ -194,7 +219,7 @@ class JugadorIA(Jugador):
             if ultima_apuesta_rival == 0:     # No ha subido nada, ha pasado
                 pass
             elif ultima_apuesta_rival != 0:   # Si han subido
-                pass
+                pass '''
 
     def comprueba_posicion(self):
         if self.es_boton():
@@ -229,13 +254,13 @@ class JugadorIA(Jugador):
 
     def calcular_fuerza_subida(self, ultima_apuesta_rival, bote_antes):
         fuerza_subida = 0
-        if ultima_apuesta_rival > bote_antes:
+        if ultima_apuesta_rival > (2*bote_antes):
             fuerza_subida = 4
-        elif (bote_antes / 2) < ultima_apuesta_rival <= bote_antes:
+        elif bote_antes < ultima_apuesta_rival <= (2*bote_antes):
             fuerza_subida = 3
-        elif (bote_antes / 3) < ultima_apuesta_rival <= (bote_antes / 2):
+        elif (bote_antes / 2) < ultima_apuesta_rival <= bote_antes:
             fuerza_subida = 2
-        elif 0 <= ultima_apuesta_rival <= (bote_antes / 3):
+        elif 0 <= ultima_apuesta_rival <= (bote_antes / 2):
             fuerza_subida = 1
 
         return fuerza_subida
@@ -246,49 +271,68 @@ class JugadorIA(Jugador):
         print(self.valor_mano)
         mano_ligada = (self.valor_mano[0])
         print(mano_ligada)
-        if mano_ligada == 0:
+        if mano_ligada == 1:
             print("No ha ligado nada, carta alta")
             return 0
-        elif mano_ligada == 1:
+        elif mano_ligada == 2:
             print("Ha ligado pareja")
             return 1
-        elif mano_ligada == 2:
-            print("Ha ligado doble pareja")
-            return 1
         elif mano_ligada == 3:
-            print("Ha ligado trio")
+            print("Ha ligado doble pareja")
             return 2
         elif mano_ligada == 4:
+            print("Ha ligado trio")
+            return 2
+        elif mano_ligada == 5:
             print("Ha ligado escalera")
             return 3
-        elif mano_ligada == 5:
+        elif mano_ligada == 6:
             print("Ha ligado color")
             return 3
-        elif mano_ligada == 6:
+        elif mano_ligada == 7:
             print("Ha ligado full")
             return 4
-        elif mano_ligada == 7:
+        elif mano_ligada == 8:
             print("Ha ligado poker")
             return 5
-        elif mano_ligada == 8:
+        elif mano_ligada == 9:
             print("Ha ligado escalera de color")
             return 5
-        elif mano_ligada == 9:
+        elif mano_ligada == 10:
             print("Ha ligado escalera real")
             return 5
 
-    def perfil_indiscrimiado_agresivo(self, valor_fuerza_mano, ultima_apuesta_rival, bote):
+    def comprobar_turno(self, bote):
+        if self.esta_en_preflop:
+            if self.posicion and bote == 3:
+                return "primer_turno"
+            else:
+                return "segundo_turno"
 
-        if self.posicion and bote == 3:
+        elif self.esta_en_postflop:
+            if not self.posicion:
+                return "primer_turno"
+            elif self.posicion:
+                return "segundo_turno"
+
+    def perfil_IA(self, valor_fuerza_mano, ultima_apuesta_rival, bote):
+
+        turno = self.comprobar_turno(bote)
+
+        if turno == "primer_turno":
             print("Estamos primer turno, hablamos primero")
-            if 4 <= valor_fuerza_mano <= 5:
+            if valor_fuerza_mano == 5:
                 return "S4"
-            elif 2 <= valor_fuerza_mano <= 3:
-                return "I"
+            elif valor_fuerza_mano == 4:
+                return "S3"
+            elif valor_fuerza_mano == 3:
+                return "S2"
+            elif valor_fuerza_mano == 2:
+                return "S1"
             elif 0 <= valor_fuerza_mano <= 1:
                 return "I"
 
-        else:
+        elif turno == "segundo_turno":
             print("Estamos en segundo turno, se comprueba si el rival ha igualado o subido")
             if self.fichas_comprometidas_fase == bote/2:
                 print("El rival ha limpeado o pasado, no ha subido")
@@ -311,8 +355,10 @@ class JugadorIA(Jugador):
                     elif valor_fuerza_mano == 4:
                         return "S3"
                     elif 2 <= valor_fuerza_mano <= 3:
+                        return "S1"
+                    elif valor_fuerza_mano == 1:
                         return "I"
-                    elif 0 <= valor_fuerza_mano <= 1:
+                    elif valor_fuerza_mano == 0:
                         return "N"
 
                 elif fuerza_subida == 3:
@@ -321,7 +367,7 @@ class JugadorIA(Jugador):
                     elif 2 <= valor_fuerza_mano <= 3:
                         return "S2"
                     elif 0 <= valor_fuerza_mano <= 1:
-                        return "N"
+                        return "I"
 
                 elif fuerza_subida == 2:
                     if 4 <= valor_fuerza_mano <= 5:

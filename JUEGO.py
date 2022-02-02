@@ -119,10 +119,12 @@ class Juego(object):
             jugador.valor_mano = np.zeros(6, dtype=int)
             jugador.valor_final = 0
         self.mesa.bote = 0
+        self.mesa.bote_dinamico = 0
         self.FLOP = False
         self.TURN = False
         self.RIVER = False
         self.mesa.cartas_mesa.clear()
+
 
     def actualizar_roles(self):
         print("          Roles actualizados:")
@@ -164,6 +166,7 @@ class Juego(object):
             for jugador in self.jugadores_partida:
                 carta_propia = (self.mesa.mazo_mesa.mazo_stdr.pop())
                 jugador.aniadir_carta(carta_propia)
+
         # carta1 = Carta(8, "\u2663")
         # carta2 = Carta(3, "\u2660")
         # carta3 = Carta(9, "\u2665")
@@ -172,8 +175,8 @@ class Juego(object):
         # carta6 = Carta(7, "\u2663")
         # carta7 = Carta("Q", "\u2660")
         # #
-        # carta8 = Carta(2, "\u2663")
-        # carta9 = Carta(3, "\u2660")
+        #carta8 = Carta(14, "\u2663")
+        # carta9 = Carta(13, "\u2663")
         # carta10 = Carta(9, "\u2665")
         # carta11 = Carta(9, "\u2663")
         # carta12 = Carta("Q", "\u2663")
@@ -181,7 +184,7 @@ class Juego(object):
         # carta14 = Carta(7, "\u2665")
         # # #
         # self.jugadores_partida[0].aniadir_carta(carta1)
-        # self.jugadores_partida[0].aniadir_carta(carta2)
+        #self.jugadores_partida[0].aniadir_carta(carta2)
         # self.jugadores_partida[0].aniadir_carta(carta3)
         # self.jugadores_partida[0].aniadir_carta(carta4)
         # self.jugadores_partida[0].aniadir_carta(carta5)
@@ -210,6 +213,18 @@ class Juego(object):
 
     def decision_estandar(self):
         table = cycle(self.jugadores_partida)
+        boton_encontrado = False
+        for jugador in table:
+            if jugador.activo and boton_encontrado and not jugador.allin:
+                self.preguntar_accion(jugador)
+                if self.fase_resuelta():
+                    self.comprobar_all_in(self.mesa.bote_fase)
+                    break
+            if jugador.es_boton():
+                boton_encontrado = True
+
+    '''def decision_estandar(self):
+        table = cycle(self.jugadores_partida)
         ciega_encontrada = False
         for jugador in table:
             if jugador.es_ciega_peque():
@@ -218,7 +233,7 @@ class Juego(object):
                 self.preguntar_accion(jugador)
                 if self.fase_resuelta():
                     self.comprobar_all_in(self.mesa.bote_fase)
-                    break
+                    break '''
 
     def fase_resuelta(self):
         for jugador in self.jugadores_partida:
@@ -243,25 +258,17 @@ class Juego(object):
 
         if respuesta == "P":
             jugador.pasar()
-            print(str(jugador.nombre) + " ha pasado.")
-            print("")
 
         elif respuesta == "I":
             apuesta_realizada = jugador.igualar(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
-            print(str(jugador.nombre) + f" ha igualado {apuesta_realizada} fichas.")
-            print("")
 
         elif respuesta == "S":
             apuesta_realizada = jugador.subir_estandar(self.comprueba_apuesta_maxima())
             self.mesa.sumar_al_bote_fase(apuesta_realizada)
-            print(str(jugador.nombre) + f" ha subido {apuesta_realizada} fichas.")
-            print("")
 
         elif respuesta == "N":
             jugador.no_ir()
-            print(str(jugador.nombre) + " no ha ido.")
-            print("")
 
         self.comprobar_victoria_por_abandono()
         return apuesta_realizada

@@ -62,31 +62,46 @@ class Jugador(object):
 
     def pasar(self):
         self.ha_actuado = True
+        print(str(self.nombre) + " ha pasado.")
+        print("")
 
     def igualar(self, apuesta_maxima_actual):
+
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
+
         if cantidad_a_igualar < self.fichas:
             self.apuesta(cantidad_a_igualar)
             self.ha_actuado = True
+            print(str(self.nombre) + f" ha igualado {cantidad_a_igualar} fichas.")
+            print("")
             return cantidad_a_igualar
 
         elif cantidad_a_igualar >= self.fichas:
-            apostar = self.fichas
+            fichas = self.fichas
             self.apuesta(self.fichas)
             self.ha_actuado = True
-            return apostar
+            print(str(self.nombre) + f" ha igualado {fichas} fichas.")
+            print("")
+            return fichas
 
     def subir_estandar(self, apuesta_maxima_actual):
         cantidad_minima_subir = apuesta_maxima_actual - self.fichas_comprometidas_fase
         cantidad_a_subir = Utilidades.preguntar_numero("Introduzca la cantidad que desea Subir: ",
                                                        cantidad_minima_subir, self.fichas)
+        if cantidad_a_subir == cantidad_minima_subir:
+            return self.igualar(apuesta_maxima_actual)
+
         self.apuesta(cantidad_a_subir)
         self.ha_actuado = True
+        print(str(self.nombre) + f" ha subido {cantidad_a_subir} fichas.")
+        print("")
         return cantidad_a_subir
 
     def no_ir(self):
         self.activo = False
         self.ha_actuado = True
+        print(str(self.nombre) + " no ha ido.")
+        print("")
 
     def info_igualar(self, apuesta_maxima_actual):
         cantidad_a_igualar = apuesta_maxima_actual - self.fichas_comprometidas_fase
